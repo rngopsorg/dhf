@@ -71,6 +71,15 @@ export const ResidueKind = z.enum([
   'reorg-orphan',             // medulla-pow reorg crossed an anchor
   'shard-loss',               // pinned shard evicted
 ]);
+
+/** Plain enum companion for non-zod consumers (e.g. ResidueKindEnum.StaleOrdering) */
+export const ResidueKindEnum = {
+  StaleOrdering: 'stale-ordering',
+  SpeculativeDivergence: 'speculative-divergence',
+  HistoricalNonCanonical: 'historical-non-canonical',
+  ReorgOrphan: 'reorg-orphan',
+  ShardLoss: 'shard-loss',
+} as const;
 export const ResidueDetected = z.object({
   type: z.literal('residue.detected'),
   residueId: z.string(),

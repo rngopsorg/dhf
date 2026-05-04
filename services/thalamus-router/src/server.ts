@@ -4,7 +4,7 @@
 import { createService, listen, wireShutdown } from '@ecca/service-base';
 import { getBus } from '@ecca/bus';
 import { getDb } from '@ecca/db';
-import { merkleRoot, sha256, sha256hex, coherenceRoot } from '@ecca/crypto';
+import { merkleRoot, sha256hex, coherenceRoot } from '@ecca/crypto';
 import { MedullaClient } from '@ecca/chain';
 import { EPOCH_INTERVAL_MS } from '@ecca/proto';
 
@@ -23,8 +23,6 @@ async function main() {
   const ipfsHashes: string[] = [];
   const sleeveHashes: string[] = [];
 
-  const hex32 = (b: Uint8Array) => Buffer.from(b).toString('hex');
-
   // Aggregate hippocampus + EVM + sleeve events.
   await bus.subscribe('ecca.memory.>', 'thalamus-mem', async (ev: any) => {
     if (ev?.cid) ipfsHashes.push(sha256hex(ev.cid));
@@ -39,13 +37,13 @@ async function main() {
   // Epoch tick — every EPOCH_INTERVAL_MS, fold buffers into a coherence root and submit.
   async function tick() {
     try {
-      const evmRoot = evmHashes.length ? merkleRoot(evmHashes.map(h => Buffer.from(h, 'hex'))) : new Uint8Array(32);
-      const ipfsRoot = ipfsHashes.length ? merkleRoot(ipfsHashes.map(h => Buffer.from(h, 'hex'))) : new Uint8Array(32);
-      const sleevesRoot = sleeveHashes.length ? merkleRoot(sleeveHashes.map(h => Buffer.from(h, 'hex'))) : new Uint8Array(32);
-      const cross = coherenceRoot({ evm: evmRoot, btc: new Uint8Array(32), ipfs: ipfsRoot, sleeves: sleevesRoot });
+      const evmRootHex = evmHashes.length ? merkleRoot(evmHashes.map(h => Buffer.from(h, 'hex'))) : '0'.repeat(64);
+      const ipfsRootHex = ipfsHashes.length ? merkleRoot(ipfsHashes.map(h => Buffer.from(h, 'hex'))) : '0'.repeat(64);
+      const sleevesRootHex = sleeveHashes.length ? merkleRoot(sleeveHashes.map(h => Buffer.from(h, 'hex'))) : '0'.repeat(64);
+      const cross = coherenceRoot({ evm: evmRootHex, btc: '0'.repeat(64), ipfs: ipfsRootHex, sleeves: sleevesRootHex });
 
       const anchor = await medulla.submitCoherenceRoot({
-        crossRoot: hex32(cross), evmRoot: hex32(evmRoot), ipfsRoot: hex32(ipfsRoot), sleevesRoot: hex32(sleevesRoot),
+        crossRoot: cross, evmRoot: evmRootHex, ipfsRoot: ipfsRootHex, sleevesRoot: sleevesRootHex,
       }).catch((e: any) => { log.warn({ err: String(e) }, 'submitCoherenceRoot failed'); return null; });
 
       if (anchor) {
@@ -53,13 +51,13 @@ async function main() {
         await db.epoch.upsert({
           where: { number: currentEpoch },
           create: {
-            number: currentEpoch, crossRoot: hex32(cross), evmRoot: hex32(evmRoot),
-            ipfsRoot: hex32(ipfsRoot), sleevesRoot: hex32(sleevesRoot),
+            number: currentEpoch, crossRoot: cross, evmRoot: evmRootHex,
+            ipfsRoot: ipfsRootHex, sleevesRoot: sleevesRootHex,
             medullaHeight: BigInt(anchor.height ?? 0), anchorBlockHash: anchor.blockHash ?? null,
           },
           update: {},
         }).catch(() => {});
-        await bus.publish({ type: 'epoch.transition', epoch: currentEpoch, crossRoot: hex32(cross), ts: Date.now() } as any);
+        await bus.publish({ type: 'epoch.transition', epoch: currentEpoch, crossRoot: cross, ts: Date.now() } as any);
         log.info({ epoch: currentEpoch, evm: evmHashes.length, ipfs: ipfsHashes.length, sleeves: sleeveHashes.length }, 'epoch.transition');
       }
       evmHashes.length = 0; ipfsHashes.length = 0; sleeveHashes.length = 0;

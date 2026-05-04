@@ -6,7 +6,7 @@ import { getBus } from '@ecca/bus';
 import { getDb } from '@ecca/db';
 import { HippocampusClient, MedullaClient, cortexPublic } from '@ecca/chain';
 import { sha256hex } from '@ecca/crypto';
-import { ResidueKind, DRIFT_MAX_DEFAULT } from '@ecca/proto';
+import { ResidueKindEnum, DRIFT_MAX_DEFAULT } from '@ecca/proto';
 
 type Kind =
   | 'epoch-anchor'
@@ -67,7 +67,7 @@ async function residueCollector() {
     const id = sha256hex(`desync:${ev.sleeveId}:${ev.ts}`);
     await db.residue.create({
       data: {
-        id, kind: ResidueKind.SpeculativeDivergence as any,
+        id, kind: ResidueKindEnum.SpeculativeDivergence,
         stackId: ev.stackId, sleeveId: ev.sleeveId,
         status: 'open', payoutEst: 5,
       },
@@ -85,7 +85,7 @@ async function residueCollector() {
       const id = sha256hex(`stale:${s.id}:${ev.epoch}`);
       await db.residue.create({
         data: {
-          id, kind: ResidueKind.StaleOrdering as any,
+          id, kind: ResidueKindEnum.StaleOrdering,
           stackId: s.stackId, sleeveId: s.id, status: 'open', payoutEst: 2,
         },
       }).catch(() => {});

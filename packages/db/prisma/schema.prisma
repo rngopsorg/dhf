@@ -44,17 +44,24 @@ model Sleeve {
 }
 
 model Anchor {
-  id           Int      @id @default(autoincrement())
-  stackId      String
-  merkleRoot   String                  // 0x… 64 hex
-  epoch        Int
-  signature    String
-  fromSleeve   String?
-  toSleeve     String?
-  txHash       String?                 // medulla-pow tx hash
-  evmTxHash    String?                 // cortex-evm tx hash (NeedlecastRouter)
-  ts           DateTime @default(now())
-  stack        Stack    @relation(fields: [stackId], references: [id])
+  id                 Int      @id @default(autoincrement())
+  stackId            String?
+  epoch              Int
+  height             BigInt   @default(0)
+  blockHash          String?
+  crossRoot          String?
+  evmRoot            String?
+  ipfsRoot           String?
+  sleevesRoot        String?
+  synapticFieldRoot  String?
+  merkleRoot         String?                  // 0x… 64 hex (needlecast)
+  signature          String?
+  fromSleeve         String?
+  toSleeve           String?
+  txHash             String?                 // medulla-pow tx hash
+  evmTxHash          String?                 // cortex-evm tx hash (NeedlecastRouter)
+  ts                 DateTime @default(now())
+  stack              Stack?   @relation(fields: [stackId], references: [id])
   @@index([stackId, epoch])
   @@index([epoch])
 }
@@ -63,8 +70,10 @@ model Residue {
   id           String   @id            // CRE-<hash>
   kind         String                  // ResidueKind (proto/events.ts)
   stackId      String?
-  evidence     Json
-  bountyEst    Float
+  sleeveId     String?
+  evidence     Json?
+  bountyEst    Float?
+  payoutEst    Float    @default(0)
   status       String   @default("open") // open | claimed | resolved
   resolverStack String?
   proofTxHash  String?
@@ -76,23 +85,30 @@ model Residue {
 }
 
 model Epoch {
-  number       Int      @id
-  blockHash    String
-  crossRoot    String
-  evmRoot      String
-  ipfsRoot     String
-  sleevesRoot  String
-  difficulty   Int
-  ts           DateTime @default(now())
+  number            Int      @id
+  blockHash         String?
+  anchorBlockHash   String?
+  crossRoot         String?
+  evmRoot           String?
+  ipfsRoot          String?
+  sleevesRoot       String?
+  medullaHeight     BigInt   @default(0)
+  difficulty        Int?
+  ts                DateTime @default(now())
 }
 
 model AuditLog {
   id           Int      @id @default(autoincrement())
-  actor        String
+  stackId      String?
+  actor        String?
+  epoch        Int?
   action       String
   target       String?
+  detail       Json?
   payload      Json?
   ts           DateTime @default(now())
   @@index([ts])
   @@index([actor])
+  @@index([stackId])
+  @@index([action])
 }

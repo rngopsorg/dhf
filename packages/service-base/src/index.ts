@@ -19,7 +19,11 @@ export function createLogger(name: string) {
 
 export async function createService(cfg: ServiceConfig): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: createLogger(cfg.name),
+    logger: {
+      name: cfg.name,
+      level: process.env.LOG_LEVEL ?? 'info',
+      timestamp: pino.stdTimeFunctions.isoTime,
+    },
     disableRequestLogging: process.env.LOG_LEVEL !== 'debug',
     bodyLimit: 8 * 1024 * 1024,
   });
