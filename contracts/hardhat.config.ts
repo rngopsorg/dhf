@@ -6,7 +6,7 @@ const PK = process.env.OPERATOR_PRIVATE_KEY ?? '0xac0974bec39a17e36ba4a6b4d238ff
 const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.24',
-    settings: { optimizer: { enabled: true, runs: 200 } },
+    settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'cancun' },
   },
   paths: { sources: './src', tests: './test', artifacts: './artifacts', cache: './cache' },
   networks: {

@@ -1,0 +1,23 @@
+FROM node:20-alpine
+WORKDIR /app
+RUN apk add --no-cache git python3 make g++
+RUN corepack enable && corepack prepare pnpm@9.7.0 --activate
+
+# Copy workspace config
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json turbo.json ./
+
+# Copy packages needed by contracts
+COPY packages ./packages
+
+# Copy contracts (including tests)
+COPY contracts ./contracts
+
+# Install all dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Compile contracts
+RUN cd contracts && npx hardhat compile
+
+# Run tests
+WORKDIR /app/contracts
+CMD ["npx", "hardhat", "test"]
