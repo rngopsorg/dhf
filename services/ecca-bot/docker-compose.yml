@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  ecca-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      OLLAMA_BASE_URL: "http://host.docker.internal:11434"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-gpt-oss:20b}"
+      OLLAMA_EMBED_MODEL: "${OLLAMA_EMBED_MODEL:-nomic-embed-text}"
+      DOCS_DIR: /app/docs
+      CHROMA_DIR: /app/chroma_db
+    volumes:
+      - ./docs:/app/docs:ro
+      - chroma-data:/app/chroma_db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  chroma-data:

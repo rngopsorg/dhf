@@ -1,20 +1,22 @@
 import os
 import glob
 import asyncio
+from collections import defaultdict
 import discord
 from discord import Intents
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 # ── Config ──────────────────────────────────────────────────────────
 DISCORD_TOKEN = os.environ["DISCORD_BOT_TOKEN"]
 OLLAMA_BASE   = os.environ.get("OLLAMA_BASE_URL", "http://100.121.246.33:11434")
 MODEL_NAME    = os.environ.get("OLLAMA_MODEL", "gpt-oss:20b")
+EMBED_MODEL   = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text")
 DOCS_DIR      = os.environ.get("DOCS_DIR", "/app/docs")
 CHROMA_DIR    = os.environ.get("CHROMA_DIR", "/app/chroma_db")
 CHUNK_SIZE    = 1500
@@ -77,9 +79,9 @@ def build_vectorstore():
     chunks = splitter.split_documents(documents)
     print(f"Created {len(chunks)} chunks")
 
-    print(f"\nBuilding vector store with Ollama embeddings ({OLLAMA_BASE})...")
+    print(f"\nBuilding vector store with Ollama embeddings ({OLLAMA_BASE}, model={EMBED_MODEL})...")
     embeddings = OllamaEmbeddings(
-        model=MODEL_NAME,
+        model=EMBED_MODEL,
         base_url=OLLAMA_BASE,
     )
     vectorstore = Chroma.from_documents(
@@ -93,7 +95,7 @@ def build_vectorstore():
 
 # ── Build chain ─────────────────────────────────────────────────────
 def build_chain(vectorstore):
-    """Build the conversational retrieval chain."""
+    """Build a simple RAG chain."""
     llm = ChatOllama(
         model=MODEL_NAME,
         base_url=OLLAMA_BASE,
@@ -101,43 +103,31 @@ def build_chain(vectorstore):
         num_ctx=8192,
     )
 
-    memory = ConversationBufferWindowMemory(
-        k=5,
-        memory_key="chat_history",
-        return_messages=True,
-        output_key="answer",
-    )
-
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(SYSTEM_PROMPT),
-        HumanMessagePromptTemplate.from_template("{question}"),
-    ])
-
     retriever = vectorstore.as_retriever(
         search_type="mmr",
         search_kwargs={"k": 6, "fetch_k": 12},
     )
 
-    chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        combine_docs_chain_kwargs={"prompt": prompt},
-        return_source_documents=True,
-        verbose=False,
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", SYSTEM_PROMPT),
+        ("human", "{question}"),
+    ])
+
+    def format_docs(docs):
+        return "\n\n---\n\n".join(d.page_content for d in docs)
+
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
     )
-    return chain
+    return chain, retriever
 
 
-# ── Per-channel memory ──────────────────────────────────────────────
-channel_chains: dict[int, ConversationalRetrievalChain] = {}
-
-
-def get_chain(channel_id: int, vectorstore):
-    """Get or create a chain with per-channel memory."""
-    if channel_id not in channel_chains:
-        channel_chains[channel_id] = build_chain(vectorstore)
-    return channel_chains[channel_id]
+# ── Per-channel history ─────────────────────────────────────────────
+channel_history: dict[int, list[str]] = defaultdict(list)
+MAX_HISTORY = 5
 
 
 # ── Discord bot ─────────────────────────────────────────────────────
@@ -154,6 +144,8 @@ def main():
     if not vectorstore:
         print("FATAL: No vectorstore — exiting.")
         return
+
+    chain, retriever = build_chain(vectorstore)
 
     intents = Intents.default()
     intents.message_content = True
@@ -176,18 +168,15 @@ def main():
         if message.author == client.user or message.author.bot:
             return
 
-        # Respond to mentions or DMs
+        # Respond only to mentions
         is_mentioned = client.user in message.mentions
-        is_dm = isinstance(message.channel, discord.DMChannel)
-        # Also respond if message starts with !ecca
-        is_command = message.content.strip().lower().startswith("!ecca")
 
-        if not (is_mentioned or is_dm or is_command):
+        if not is_mentioned:
             return
 
-        # Strip the mention/command prefix
+        # Strip the mention prefix
         query = message.content
-        for mention_str in [f"<@{client.user.id}>", f"<@!{client.user.id}>", "!ecca"]:
+        for mention_str in [f"<@{client.user.id}>", f"<@!{client.user.id}>"]:
             query = query.replace(mention_str, "").strip()
 
         if not query:
@@ -197,16 +186,22 @@ def main():
         # Show typing indicator
         async with message.channel.typing():
             try:
-                chain = get_chain(message.channel.id, vectorstore)
+                # Add history context to query
+                history = channel_history[message.channel.id]
+                if history:
+                    full_query = "Previous conversation:\n" + "\n".join(history[-MAX_HISTORY:]) + f"\n\nNew question: {query}"
+                else:
+                    full_query = query
+
                 # Run the chain in a thread to avoid blocking
-                result = await asyncio.to_thread(
-                    chain.invoke, {"question": query}
-                )
-                answer = result.get("answer", "I couldn't generate a response.")
+                answer = await asyncio.to_thread(chain.invoke, full_query)
+
+                # Track history
+                channel_history[message.channel.id].append(f"Q: {query}\nA: {answer[:200]}")
 
                 # Get source docs for citation
-                sources = result.get("source_documents", [])
-                source_names = list(set(d.metadata.get("source", "?") for d in sources[:3]))
+                source_docs = await asyncio.to_thread(retriever.invoke, query)
+                source_names = list(set(d.metadata.get("source", "?") for d in source_docs[:3]))
 
                 # Discord has a 2000 char limit
                 if len(answer) > 1900:
