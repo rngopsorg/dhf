@@ -60,7 +60,7 @@ ECCA (Eternal Coherence for Cryptographic Anchors) is a neuroscience-inspired di
 - EntropyCredit (ENC) — earned by contributing novel data
 - StakeWeight (STK) — governance weight from staking BWT
 
-**Services:** synapse-api, thalamus-router, dhf-compositor, needlecast-router, quellist-treasury, bandwidth-faucet, sleeve-runtime, worker-runner
+**Services:** siyana-api, thalamus-router, dhf-compositor, needlecast-router, quellist-treasury, bandwidth-faucet, sleeve-runtime, worker-runner
 
 **Cryptography:** AES-256-GCM encryption, HKDF-SHA512 epoch keys, Ed25519 signatures, Merkle Mountain Range proofs, CID content addressing
 

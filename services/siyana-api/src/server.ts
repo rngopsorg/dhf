@@ -1,4 +1,4 @@
-// Synapse API — Envoy Interface — REST + WebSocket + GraphQL gateway.
+// Siyana API — Envoy Interface — REST + WebSocket + GraphQL gateway.
 import { createService, listen, wireShutdown } from '@ecca/service-base';
 import { getBus } from '@ecca/bus';
 import { getDb } from '@ecca/db';
@@ -8,10 +8,10 @@ import { DEFAULT_BALANCE, type EmbodimentType } from '@ecca/proto';
 import websocket from '@fastify/websocket';
 import { z } from 'zod';
 
-const PORT = Number(process.env.SYNAPSE_PORT ?? 7070);
+const PORT = Number(process.env.SIYANA_PORT ?? 7070);
 
 async function main() {
-  const app = await createService({ name: 'synapse-api' });
+  const app = await createService({ name: 'siyana-api' });
   const log = app.log;
   await app.register(websocket);
 
@@ -28,7 +28,7 @@ async function main() {
     conn.socket.on('close', () => wsClients.delete(conn));
   });
   // forward all bus events to ws clients
-  bus.subscribe('ecca.>', 'synapse-ws-fanout', async (ev) => {
+  bus.subscribe('ecca.>', 'siyana-ws-fanout', async (ev) => {
     const msg = JSON.stringify(ev);
     for (const c of wsClients) {
       try { c.socket.send(msg); } catch { /* drop */ }
@@ -93,11 +93,13 @@ async function main() {
     const r = await hippo.recall({
       rootCid: stack.episodicHead, stackId: stack.id, epoch: stack.epoch, depth, memoryToken: memToken,
     });
+    const fragments = r.fragments ?? [];
+    const broken = r.broken ?? [];
     bus.publish({
       type: 'memory.recall', stackId: stack.id, rootCid: stack.episodicHead,
-      fidelity: r.fidelity, fragments: r.fragments.length, broken: r.broken.length, ts: Date.now(),
+      fidelity: r.fidelity, fragments: fragments.length, broken: broken.length, ts: Date.now(),
     } as any).catch(() => {});
-    return r;
+    return { fragments, broken, fidelity: r.fidelity };
   });
 
   // ─── SLEEVES ──────────────────────────────────────────────────────────────

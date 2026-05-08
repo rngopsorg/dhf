@@ -1,7 +1,7 @@
 // Axonal Bus — NATS JetStream client.
 // Every cross-service signal in ECCA flows through this bus.
 
-import { connect, type NatsConnection, type JetStreamClient, type Subscription, JSONCodec } from 'nats';
+import { connect, type NatsConnection, type JetStreamClient, type Subscription, JSONCodec, consumerOpts, createInbox } from 'nats';
 import pino from 'pino';
 import { STREAM_CONFIG, type EccaEvent } from '@ecca/proto';
 
@@ -50,8 +50,11 @@ export class AxonalBus {
     durableName: string,
     handler: (event: T) => Promise<void> | void,
   ): Promise<Subscription> {
-    const opts = { durable_name: durableName, ack_explicit: true } as any;
-    const sub = await this.js.subscribe(subject, opts as any);
+    const opts = consumerOpts();
+    opts.durable(durableName);
+    opts.ackExplicit();
+    opts.deliverTo(createInbox());
+    const sub = await this.js.subscribe(subject, opts);
     (async () => {
       for await (const m of sub) {
         try {

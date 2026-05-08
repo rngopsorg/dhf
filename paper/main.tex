@@ -228,7 +228,7 @@ Neuromorphic computing~\cite{davies2018loihi,merolla2014truenorth} and spiking n
 ]
 
 % Layers (top to bottom)
-\node[layer=eccacyan] (l3) at (0,6) {\textbf{L3: Synapse API} --- REST + WebSocket Gateway (Port 7070)};
+\node[layer=eccacyan] (l3) at (0,6) {\textbf{L3: Siyana API} --- REST + WebSocket Gateway (Port 7070)};
 \node[layer=eccablue] (l25) at (0,4.5) {\textbf{L2.5: Routing} --- Thalamus Router $|$ DHF Compositor $|$ Needlecast Router $|$ Treasury $|$ Faucet};
 \node[layer=eccamagenta] (l2) at (0,3) {\textbf{L2: Execution} --- Sleeve Runtime (4-in-1) $|$ Worker Runner (6-in-1)};
 \node[layer=eccagreen] (l15) at (0,1.5) {\textbf{L1.5: Synaptic Field} --- Merkle Mountain Range over L1a block hashes (256-leaf window)};
@@ -310,7 +310,7 @@ The key architectural property is \emph{independent failure modes}: if any singl
 \ecca{} deploys 10 TypeScript microservices organized into three tiers:
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Gateway}: Synapse API (REST + WebSocket, port 7070)
+  \item \textbf{Gateway}: Siyana API (REST + WebSocket, port 7070)
   \item \textbf{Routing}: Thalamus Router (coherence folding, port 7072), DHF Compositor (memory reconstruction, port 7073), Needlecast Router (re-sleeving, port 7071), Quellist Treasury (emission, port 7074), Bandwidth Faucet (development drip, port 7075)
   \item \textbf{Execution}: Sleeve Runtime (4-in-1 parametric dispatcher), Worker Runner (6-in-1 background worker)
 \end{enumerate}

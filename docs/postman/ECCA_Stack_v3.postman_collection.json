@@ -1,12 +1,12 @@
 {
   "info": {
     "name": "ECCA Stack v3 — Full API Test Suite",
-    "description": "Complete test collection for all ECCA Stack v3 services. Run requests in order — variables auto-populate from responses.\n\n**Setup:** Start Docker services with `pnpm compose:up` then deploy contracts with `pnpm contracts:deploy`.\n\n**Base URL:** http://localhost:7070 (Synapse API gateway)",
+    "description": "Complete test collection for all ECCA Stack v3 services. Run requests in order — variables auto-populate from responses.\n\n**Setup:** Start Docker services with `pnpm compose:up` then deploy contracts with `pnpm contracts:deploy`.\n\n**Base URL:** http://localhost:7070 (Siyana API gateway)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "ecca-stack-v3"
   },
   "variable": [
-    { "key": "SYNAPSE_URL", "value": "http://localhost:7070" },
+    { "key": "SIYANA_URL", "value": "http://localhost:7070" },
     { "key": "FAUCET_URL", "value": "http://localhost:7075" },
     { "key": "THALAMUS_URL", "value": "http://localhost:7072" },
     { "key": "COMPOSITOR_URL", "value": "http://localhost:7073" },
@@ -27,11 +27,11 @@
       "description": "Verify all services are running before testing.",
       "item": [
         {
-          "name": "Synapse API Health",
+          "name": "Siyana API Health",
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/healthz", "host": ["{{SYNAPSE_URL}}"], "path": ["healthz"] }
+            "url": { "raw": "{{SIYANA_URL}}/healthz", "host": ["{{SIYANA_URL}}"], "path": ["healthz"] }
           },
           "event": [
             {
@@ -39,7 +39,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Synapse API is healthy', function () {",
+                  "pm.test('Siyana API is healthy', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
@@ -136,7 +136,7 @@
               "mode": "raw",
               "raw": "{\n  \"name\": \"postman-test-stack\",\n  \"kind\": \"autonomous\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/stacks", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "stacks"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/stacks", "host": ["{{SIYANA_URL}}"], "path": ["v1", "stacks"] }
           },
           "event": [
             {
@@ -175,7 +175,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/stacks", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "stacks"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/stacks", "host": ["{{SIYANA_URL}}"], "path": ["v1", "stacks"] }
           },
           "event": [
             {
@@ -200,7 +200,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/stacks/{{stackId}}", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "stacks", "{{stackId}}"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/stacks/{{stackId}}", "host": ["{{SIYANA_URL}}"], "path": ["v1", "stacks", "{{stackId}}"] }
           },
           "event": [
             {
@@ -234,7 +234,7 @@
               "mode": "raw",
               "raw": "{\n  \"stackId\": \"{{stackId}}\",\n  \"embodimentType\": \"human\",\n  \"hostname\": \"postman-human-01\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves"] }
           },
           "event": [
             {
@@ -267,7 +267,7 @@
               "mode": "raw",
               "raw": "{\n  \"stackId\": \"{{stackId}}\",\n  \"embodimentType\": \"ai\",\n  \"hostname\": \"postman-ai-01\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves"] }
           },
           "event": [
             {
@@ -295,7 +295,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves"] }
           },
           "event": [
             {
@@ -400,7 +400,7 @@
               "mode": "raw",
               "raw": "{\n  \"input\": \"The city spreads below like a circuit board, each light a node in an infinite mesh of human intent.\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_human}}/perceive", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "perceive"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_human}}/perceive", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "perceive"] }
           },
           "event": [
             {
@@ -430,7 +430,7 @@
               "mode": "raw",
               "raw": "{\n  \"input\": \"Pattern recognition suggests emergent coordination between nodes 7 through 42. Coherence probability: 0.89.\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_ai}}/perceive", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}", "perceive"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_ai}}/perceive", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}", "perceive"] }
           },
           "event": [
             {
@@ -457,7 +457,7 @@
               "mode": "raw",
               "raw": "{\n  \"input\": \"The boundary between self and simulation grows thin. Quellcrist's theorem holds: identity is coherence, not location.\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_human}}/perceive", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "perceive"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_human}}/perceive", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "perceive"] }
           },
           "event": [
             {
@@ -480,8 +480,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{SYNAPSE_URL}}/v1/stacks/{{stackId}}/recall?depth=6&memoryToken=1000",
-              "host": ["{{SYNAPSE_URL}}"],
+              "raw": "{{SIYANA_URL}}/v1/stacks/{{stackId}}/recall?depth=6&memoryToken=1000",
+              "host": ["{{SIYANA_URL}}"],
               "path": ["v1", "stacks", "{{stackId}}", "recall"],
               "query": [
                 { "key": "depth", "value": "6" },
@@ -523,7 +523,7 @@
               "mode": "raw",
               "raw": "{\n  \"text\": \"Core memory: the first time consciousness recognized itself across two bodies.\",\n  \"pin\": true\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/stacks/{{stackId}}/remember", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "stacks", "{{stackId}}", "remember"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/stacks/{{stackId}}/remember", "host": ["{{SIYANA_URL}}"], "path": ["v1", "stacks", "{{stackId}}", "remember"] }
           },
           "event": [
             {
@@ -553,7 +553,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_human}}/sync", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "sync"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_human}}/sync", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}", "sync"] }
           },
           "event": [
             {
@@ -577,7 +577,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_ai}}/sync", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}", "sync"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_ai}}/sync", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}", "sync"] }
           },
           "event": [
             {
@@ -600,7 +600,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/coordination/desync", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "coordination", "desync"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/coordination/desync", "host": ["{{SIYANA_URL}}"], "path": ["v1", "coordination", "desync"] }
           },
           "event": [
             {
@@ -634,7 +634,7 @@
               "mode": "raw",
               "raw": "{\n  \"from\": \"{{sleeveId_human}}\",\n  \"to\": \"{{sleeveId_ai}}\"\n}"
             },
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/needlecast", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "needlecast"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/needlecast", "host": ["{{SIYANA_URL}}"], "path": ["v1", "needlecast"] }
           },
           "event": [
             {
@@ -698,7 +698,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/epochs/current", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "epochs", "current"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/epochs/current", "host": ["{{SIYANA_URL}}"], "path": ["v1", "epochs", "current"] }
           },
           "event": [
             {
@@ -723,7 +723,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/mining/block", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "mining", "block"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/mining/block", "host": ["{{SIYANA_URL}}"], "path": ["v1", "mining", "block"] }
           },
           "event": [
             {
@@ -898,7 +898,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/tokens/balances/{{stackId}}", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "tokens", "balances", "{{stackId}}"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/tokens/balances/{{stackId}}", "host": ["{{SIYANA_URL}}"], "path": ["v1", "tokens", "balances", "{{stackId}}"] }
           },
           "event": [
             {
@@ -923,7 +923,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/coordination/residues", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "coordination", "residues"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/coordination/residues", "host": ["{{SIYANA_URL}}"], "path": ["v1", "coordination", "residues"] }
           },
           "event": [
             {
@@ -956,7 +956,7 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_human}}", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_human}}", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_human}}"] }
           },
           "event": [
             {
@@ -980,7 +980,7 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves/{{sleeveId_ai}}", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves/{{sleeveId_ai}}", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves", "{{sleeveId_ai}}"] }
           },
           "event": [
             {
@@ -1004,7 +1004,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{SYNAPSE_URL}}/v1/sleeves", "host": ["{{SYNAPSE_URL}}"], "path": ["v1", "sleeves"] }
+            "url": { "raw": "{{SIYANA_URL}}/v1/sleeves", "host": ["{{SIYANA_URL}}"], "path": ["v1", "sleeves"] }
           },
           "event": [
             {

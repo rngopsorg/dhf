@@ -37,7 +37,7 @@ Adversary partitions a stack from the DAG. → Recall fidelity drops; `historica
 ### T5 — Treasury drain
 Adversary mints unlimited tokens. → Prevented by `onlyMinter` modifier; minter is the deployer (rotatable to a multisig).
 
-### T6 — DoS on synapse-api
+### T6 — DoS on siyana-api
 Public-facing service. → Rate-limited (Fastify rate-limit plugin in production), JWT-required for write paths in production (open in dev).
 
 ## Audit Surface

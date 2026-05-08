@@ -1,7 +1,7 @@
 // Sleeve Runtime — embodied agent process.
 // One container per sleeve replica; SLEEVE_KIND ∈ {human,ai,mining,memory}
 // dictates behavior. Each replica auto-registers a fresh sleeve identity
-// against the synapse-api and runs the kind-specific event loop.
+// against the siyana-api and runs the kind-specific event loop.
 import { createService, listen, wireShutdown } from '@ecca/service-base';
 import { getBus } from '@ecca/bus';
 import os from 'node:os';
@@ -9,13 +9,13 @@ import os from 'node:os';
 type Kind = 'human' | 'ai' | 'mining' | 'memory';
 const KIND = (process.env.SLEEVE_KIND ?? 'human') as Kind;
 const STACK_ID = process.env.SLEEVE_STACK_ID; // optional pre-bound stack
-const SYNAPSE = process.env.SYNAPSE_URL ?? 'http://synapse-api:7070';
+const SIYANA = process.env.SIYANA_URL ?? 'http://siyana-api:7070';
 const PORT = Number(process.env.SLEEVE_PORT ?? 0);
 const TICK_MS = Number(process.env.SLEEVE_TICK_MS ?? 8000);
 const HOSTNAME = os.hostname();
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(SYNAPSE + path, {
+  const r = await fetch(SIYANA + path, {
     ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) },
   });
   if (!r.ok) throw new Error(`${init?.method ?? 'GET'} ${path} → ${r.status}`);

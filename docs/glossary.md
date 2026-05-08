@@ -10,7 +10,7 @@
 | **Hippocampus** | Episodic memory consolidator | Content-addressed DAG (`hippocampus-dag`) |
 | **Medulla** | Brainstem / autonomic | PoW chain (`medulla-pow`) |
 | **Thalamus** | Sensory relay | Cross-shard event router (`thalamus-router`) |
-| **Synapse** | Inter-neuron junction | API gateway (`synapse-api`) |
+| **Siyana** | Inter-neuron junction | API gateway (`siyana-api`) |
 | **Synaptic Field** | Neural firing pattern integral | Append-only MMR over medulla blocks |
 | **Coherence Profile Vector (CPV)** | Cortical column tuning | 5-coefficient bandwidth scaling vector on Stack NFT |
 | **Epoch Binding Curve (EBC)** | Synaptic decay | `(decayRate, floor)` token decay schedule on Stack NFT |

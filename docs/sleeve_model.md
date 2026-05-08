@@ -16,7 +16,7 @@ Each sleeve carries an instantaneous **drift counter** that increments on every 
 ## Sleeve Lifecycle
 
 ```
-spawn ──► register (synapse-api /v1/sleeves) ──► tick ──► (drift|sync)*
+spawn ──► register (siyana-api /v1/sleeves) ──► tick ──► (drift|sync)*
                                                   │
                                                   ├── needlecast (transfer to peer sleeve)
                                                   └── decommission

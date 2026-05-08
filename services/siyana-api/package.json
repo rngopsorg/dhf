@@ -1,5 +1,5 @@
 {
-  "name": "@ecca/synapse-api",
+  "name": "@ecca/siyana-api",
   "version": "3.0.0",
   "type": "module",
   "main": "./dist/server.js",

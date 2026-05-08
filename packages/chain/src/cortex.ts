@@ -6,7 +6,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 export const cortexChain = defineChain({
   id: Number(process.env.CORTEX_CHAIN_ID ?? 131072),
   name: 'Cortex EVM',
-  nativeCurrency: { name: 'Synapse', symbol: 'SYN', decimals: 18 },
+  nativeCurrency: { name: 'Siyana', symbol: 'SYN', decimals: 18 },
   rpcUrls: {
     default: { http: [process.env.CORTEX_RPC ?? 'http://cortex-evm:8545'] },
   },

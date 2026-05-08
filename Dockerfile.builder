@@ -63,7 +63,7 @@ COPY --from=ts-builder /app/packages/bus/dist /artifacts/ts/packages/bus/dist
 COPY --from=ts-builder /app/packages/db/dist /artifacts/ts/packages/db/dist
 COPY --from=ts-builder /app/packages/chain/dist /artifacts/ts/packages/chain/dist
 COPY --from=ts-builder /app/packages/service-base/dist /artifacts/ts/packages/service-base/dist
-COPY --from=ts-builder /app/services/synapse-api/dist /artifacts/ts/services/synapse-api/dist
+COPY --from=ts-builder /app/services/siyana-api/dist /artifacts/ts/services/siyana-api/dist
 COPY --from=ts-builder /app/services/thalamus-router/dist /artifacts/ts/services/thalamus-router/dist
 COPY --from=ts-builder /app/services/dhf-compositor/dist /artifacts/ts/services/dhf-compositor/dist
 COPY --from=ts-builder /app/services/needlecast-router-svc/dist /artifacts/ts/services/needlecast-router-svc/dist
@@ -90,7 +90,7 @@ RUN echo "=== BUILD VERIFICATION ===" && \
     ls /artifacts/ts/packages/chain/dist/index.js && \
     ls /artifacts/ts/packages/service-base/dist/index.js && \
     echo "--- TypeScript services ---" && \
-    ls /artifacts/ts/services/synapse-api/dist/server.js && \
+    ls /artifacts/ts/services/siyana-api/dist/server.js && \
     ls /artifacts/ts/services/thalamus-router/dist/server.js && \
     ls /artifacts/ts/services/dhf-compositor/dist/server.js && \
     ls /artifacts/ts/services/needlecast-router-svc/dist/server.js && \

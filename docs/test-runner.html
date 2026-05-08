@@ -1,21 +1,21 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Test Runner — ECCA Stack</title>
+  <title>API Test Runner â€” ECCA Stack</title>
   <meta name="description" content="End-to-end API test runner for ECCA Stack. Run tests against your local Docker services directly from the browser.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>â—ˆ</text></svg>">
   <style>
-    /* ── Test Runner Layout ── */
+    /* â”€â”€ Test Runner Layout â”€â”€ */
     .runner-layout { display: grid; grid-template-columns: 320px 1fr; gap: 2rem; min-height: 80vh; }
     @media (max-width: 900px) { .runner-layout { grid-template-columns: 1fr; } }
 
-    /* ── Sidebar ── */
+    /* â”€â”€ Sidebar â”€â”€ */
     .runner-sidebar { position: sticky; top: 6rem; align-self: start; }
     .runner-sidebar h4 { font-family: var(--font-display); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
     .runner-sidebar h4:first-child { margin-top: 0; }
@@ -29,13 +29,13 @@
     .phase-list li.skipped .status-dot { background: var(--text-muted); border-color: var(--text-muted); }
     @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
-    /* ── Config Bar ── */
+    /* â”€â”€ Config Bar â”€â”€ */
     .config-bar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; }
     .config-bar label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.25rem; }
     .config-bar input { background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; width: 200px; }
     .config-bar input:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,220,255,0.15); }
 
-    /* ── Buttons ── */
+    /* â”€â”€ Buttons â”€â”€ */
     .run-btn { padding: 0.6rem 1.5rem; background: linear-gradient(135deg, var(--neon-cyan), #0090a8); color: var(--bg-primary); font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.15s ease; }
     .run-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,220,255,0.3); }
     .run-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -43,7 +43,7 @@
     .reset-btn { padding: 0.6rem 1rem; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
     .reset-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
 
-    /* ── Stats Bar ── */
+    /* â”€â”€ Stats Bar â”€â”€ */
     .stats-bar { display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .stat-item { text-align: center; }
     .stat-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
@@ -53,11 +53,11 @@
     .stat-value.muted { color: var(--text-muted); }
     .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-family: var(--font-mono); }
 
-    /* ── Progress ── */
+    /* â”€â”€ Progress â”€â”€ */
     .progress-bar { width: 100%; height: 4px; background: rgba(0,220,255,0.1); border-radius: 2px; margin-bottom: 2rem; overflow: hidden; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green)); border-radius: 2px; transition: width 0.4s ease; width: 0%; }
 
-    /* ── Test Cards ── */
+    /* â”€â”€ Test Cards â”€â”€ */
     .test-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 1.25rem; overflow: hidden; transition: border-color 0.3s ease; }
     .test-card.pass { border-color: rgba(0,255,136,0.3); }
     .test-card.fail { border-color: rgba(255,68,68,0.3); }
@@ -77,7 +77,7 @@
     .chain-cortex { color: #a855f7; border-color: rgba(168,85,247,0.3); }
     .chain-medulla { color: var(--neon-orange); border-color: rgba(255,107,0,0.3); }
     .chain-hippocampus { color: var(--neon-green); border-color: rgba(0,255,136,0.3); }
-    .chain-synapse { color: var(--neon-cyan); border-color: rgba(0,220,255,0.3); }
+    .chain-Siyana { color: var(--neon-cyan); border-color: rgba(0,220,255,0.3); }
 
     .test-card-body { display: none; padding: 0 1.25rem 1.25rem; }
     .test-card.open .test-card-body { display: block; }
@@ -97,7 +97,7 @@
     .panel-body .num { color: var(--neon-yellow); }
     .panel-body .bool { color: var(--neon-magenta); }
 
-    /* ── Verify Box ── */
+    /* â”€â”€ Verify Box â”€â”€ */
     .verify-box { background: rgba(0,220,255,0.04); border: 1px solid rgba(0,220,255,0.15); border-radius: 8px; padding: 1rem; margin-top: 0.75rem; }
     .verify-box h5 { font-family: var(--font-display); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--neon-cyan); margin: 0 0 0.5rem; }
     .verify-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.8rem; }
@@ -106,22 +106,22 @@
     .verify-item code { background: rgba(0,0,0,0.3); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.78rem; }
     .verify-item a { color: var(--neon-cyan); }
 
-    /* ── Log Hint ── */
+    /* â”€â”€ Log Hint â”€â”€ */
     .log-hint { background: rgba(255,107,0,0.06); border: 1px solid rgba(255,107,0,0.2); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); }
     .log-hint code { background: rgba(0,0,0,0.3); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.78rem; color: var(--neon-orange); }
 
-    /* ── Assertion List ── */
+    /* â”€â”€ Assertion List â”€â”€ */
     .assertions { list-style: none; padding: 0; margin: 0.75rem 0 0; }
     .assertions li { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; font-size: 0.8rem; font-family: var(--font-mono); }
     .assertions li .a-icon { font-size: 0.9rem; }
     .assertions li.pass { color: var(--neon-green); }
     .assertions li.fail { color: #ff4444; }
 
-    /* ── Chevron ── */
+    /* â”€â”€ Chevron â”€â”€ */
     .chevron { transition: transform 0.2s ease; color: var(--text-muted); font-size: 0.8rem; }
     .test-card.open .chevron { transform: rotate(90deg); }
 
-    /* ── Callout ── */
+    /* â”€â”€ Callout â”€â”€ */
     .callout { background: var(--bg-card); border-left: 3px solid var(--neon-cyan); border-radius: 0 8px 8px 0; padding: 1rem 1.5rem; margin: 1.5rem 0; }
     .callout-warn { border-left-color: var(--neon-orange); }
     .callout strong { color: var(--neon-cyan); }
@@ -135,14 +135,14 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><span class="logo-icon">◈</span> ECCA</a>
+    <a href="index.html" class="nav-logo"><span class="logo-icon">â—ˆ</span> ECCA</a>
     <ul class="nav-links">
       <li><a href="https://discord.gg/GXBS3dUT" target="_blank">Discord</a></li>
       <li><a href="paper.pdf" target="_blank">Paper</a></li>
       <li><a href="architecture.html">Architecture</a></li>
       <li><a href="docs.html">Docs</a></li>
       <li><a href="developer.html">Developers</a></li>
-      <li><a href="https://www.paypal.com/donate?business=rng%40infrasim.org&currency_code=USD" target="_blank" class="nav-cta" style="background:var(--accent,#00ffaa);color:#000;">♥ Donate</a></li>
+      <li><a href="https://www.paypal.com/donate?business=rng%40infrasim.org&currency_code=USD" target="_blank" class="nav-cta" style="background:var(--accent,#00ffaa);color:#000;">â™¥ Donate</a></li>
     </ul>
     <button class="nav-mobile-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
@@ -154,7 +154,7 @@
     <!-- Header -->
     <div style="margin-bottom: 2rem;">
       <span style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--neon-cyan);">// end-to-end test runner</span>
-      <h1 style="font-size:clamp(1.8rem,4vw,2.8rem);margin:0.5rem 0 0.75rem;">ECCA Stack — Live API Tests</h1>
+      <h1 style="font-size:clamp(1.8rem,4vw,2.8rem);margin:0.5rem 0 0.75rem;">ECCA Stack â€” Live API Tests</h1>
       <p style="font-size:1rem;color:var(--text-secondary);max-width:720px;">Run the full cognitive cycle against your local Docker services. Each test shows the request, response, which blockchain was touched, and where to verify the result.</p>
     </div>
 
@@ -169,8 +169,8 @@
         <input type="text" id="cfg-base" value="http://localhost" />
       </div>
       <div>
-        <label>Synapse Port</label>
-        <input type="text" id="cfg-synapse" value="7070" style="width:80px;" />
+        <label>Siyana Port</label>
+        <input type="text" id="cfg-Siyana" value="7070" style="width:80px;" />
       </div>
       <div>
         <label>Faucet Port</label>
@@ -181,7 +181,7 @@
         <input type="text" id="cfg-cortex" value="8545" style="width:80px;" />
       </div>
       <div style="display:flex;gap:0.5rem;align-items:flex-end;">
-        <button class="run-btn" id="btn-run" onclick="runAllTests()">▶ Run All Tests</button>
+        <button class="run-btn" id="btn-run" onclick="runAllTests()">â–¶ Run All Tests</button>
         <button class="reset-btn" id="btn-reset" onclick="resetAll()">Reset</button>
       </div>
     </div>
@@ -201,54 +201,54 @@
 
       <!-- Sidebar -->
       <aside class="runner-sidebar">
-        <h4>Phase 1 — Infrastructure</h4>
+        <h4>Phase 1 â€” Infrastructure</h4>
         <ul class="phase-list">
-          <li data-test="health-synapse"><span class="status-dot"></span> Synapse API</li>
+          <li data-test="health-Siyana"><span class="status-dot"></span> Siyana API</li>
           <li data-test="health-medulla"><span class="status-dot"></span> Medulla PoW</li>
           <li data-test="health-hippocampus"><span class="status-dot"></span> Hippocampus DAG</li>
           <li data-test="health-cortex"><span class="status-dot"></span> Cortex EVM</li>
         </ul>
-        <h4>Phase 2 — Identity</h4>
+        <h4>Phase 2 â€” Identity</h4>
         <ul class="phase-list">
           <li data-test="create-stack"><span class="status-dot"></span> Create Stack</li>
           <li data-test="spawn-human"><span class="status-dot"></span> Spawn Human Sleeve</li>
           <li data-test="spawn-ai"><span class="status-dot"></span> Spawn AI Sleeve</li>
         </ul>
-        <h4>Phase 3 — Token Economy</h4>
+        <h4>Phase 3 â€” Token Economy</h4>
         <ul class="phase-list">
           <li data-test="faucet-drip"><span class="status-dot"></span> Faucet Drip</li>
           <li data-test="check-balances-1"><span class="status-dot"></span> Verify Balances</li>
         </ul>
-        <h4>Phase 4 — Memory (DAG)</h4>
+        <h4>Phase 4 â€” Memory (DAG)</h4>
         <ul class="phase-list">
           <li data-test="perceive-1"><span class="status-dot"></span> Perceive #1</li>
           <li data-test="perceive-2"><span class="status-dot"></span> Perceive #2</li>
           <li data-test="perceive-3"><span class="status-dot"></span> Perceive #3</li>
           <li data-test="remember-pin"><span class="status-dot"></span> Remember (Pin)</li>
         </ul>
-        <h4>Phase 5 — Sync & Epoch</h4>
+        <h4>Phase 5 â€” Sync & Epoch</h4>
         <ul class="phase-list">
           <li data-test="sync-human"><span class="status-dot"></span> Sync Human</li>
           <li data-test="sync-ai"><span class="status-dot"></span> Sync AI</li>
           <li data-test="mine-block"><span class="status-dot"></span> Mine PoW Block</li>
           <li data-test="epoch-check"><span class="status-dot"></span> Get Epoch</li>
         </ul>
-        <h4>Phase 6 — Recall</h4>
+        <h4>Phase 6 â€” Recall</h4>
         <ul class="phase-list">
           <li data-test="recall"><span class="status-dot"></span> Recall Memory</li>
           <li data-test="check-fidelity"><span class="status-dot"></span> Fidelity Check</li>
         </ul>
-        <h4>Phase 7 — Needlecast</h4>
+        <h4>Phase 7 â€” Needlecast</h4>
         <ul class="phase-list">
-          <li data-test="needlecast"><span class="status-dot"></span> Transfer H→AI</li>
+          <li data-test="needlecast"><span class="status-dot"></span> Transfer Hâ†’AI</li>
         </ul>
-        <h4>Phase 8 — Blockchain Verification</h4>
+        <h4>Phase 8 â€” Blockchain Verification</h4>
         <ul class="phase-list">
           <li data-test="verify-evm"><span class="status-dot"></span> Cortex EVM State</li>
           <li data-test="check-residues"><span class="status-dot"></span> Coordination Residues</li>
           <li data-test="check-desync"><span class="status-dot"></span> Desync Report</li>
         </ul>
-        <h4>Phase 9 — Cleanup</h4>
+        <h4>Phase 9 â€” Cleanup</h4>
         <ul class="phase-list">
           <li data-test="decomm-human"><span class="status-dot"></span> Decomm Human</li>
           <li data-test="decomm-ai"><span class="status-dot"></span> Decomm AI</li>
@@ -259,7 +259,7 @@
       <!-- Main Test Output -->
       <main id="test-output">
         <div class="test-card" id="card-placeholder" style="border:1px dashed var(--border-subtle);background:transparent;text-align:center;padding:3rem;">
-          <p style="color:var(--text-muted);font-size:0.9rem;">Click <strong>▶ Run All Tests</strong> to start the end-to-end test suite.<br>Tests run sequentially — each step depends on the previous one.</p>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Click <strong>â–¶ Run All Tests</strong> to start the end-to-end test suite.<br>Tests run sequentially â€” each step depends on the previous one.</p>
         </div>
       </main>
 
@@ -267,13 +267,13 @@
 
     <!-- Logs Guide -->
     <div style="margin-top:3rem;padding:2rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;">
-      <h3 style="margin-top:0;">📋 How to Read Logs</h3>
+      <h3 style="margin-top:0;">ðŸ“‹ How to Read Logs</h3>
       <p style="color:var(--text-secondary);font-size:0.9rem;">While tests run, you can watch logs in real-time from another terminal:</p>
       <pre style="background:rgba(0,0,0,0.4);padding:1rem;border-radius:8px;font-size:0.82rem;"><code><span style="color:var(--text-muted);"># All services at once</span>
 <span style="color:var(--neon-cyan);">pnpm compose:logs</span>
 
 <span style="color:var(--text-muted);"># Individual services</span>
-<span style="color:var(--neon-green);">docker compose logs -f synapse-api</span>          <span style="color:var(--text-muted);"># API gateway</span>
+<span style="color:var(--neon-green);">docker compose logs -f siyana-api</span>          <span style="color:var(--text-muted);"># API gateway</span>
 <span style="color:var(--neon-green);">docker compose logs -f thalamus-router</span>       <span style="color:var(--text-muted);"># Epoch engine</span>
 <span style="color:var(--neon-green);">docker compose logs -f needlecast-router</span>     <span style="color:var(--text-muted);"># Re-sleeving</span>
 <span style="color:var(--neon-green);">docker compose logs -f dhf-compositor</span>        <span style="color:var(--text-muted);"># Memory reconstruction</span>
@@ -292,22 +292,22 @@
       <h4 style="margin-top:1.5rem;">Observability Dashboards</h4>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:0.75rem;">
         <a href="http://localhost:3030" target="_blank" style="display:block;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:8px;text-align:center;text-decoration:none;">
-          <div style="font-size:1.5rem;margin-bottom:0.25rem;">📊</div>
+          <div style="font-size:1.5rem;margin-bottom:0.25rem;">ðŸ“Š</div>
           <div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;">Grafana</div>
           <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">:3030</div>
         </a>
         <a href="http://localhost:9090" target="_blank" style="display:block;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:8px;text-align:center;text-decoration:none;">
-          <div style="font-size:1.5rem;margin-bottom:0.25rem;">🔥</div>
+          <div style="font-size:1.5rem;margin-bottom:0.25rem;">ðŸ”¥</div>
           <div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;">Prometheus</div>
           <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">:9090</div>
         </a>
         <a href="http://localhost:16686" target="_blank" style="display:block;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:8px;text-align:center;text-decoration:none;">
-          <div style="font-size:1.5rem;margin-bottom:0.25rem;">🔍</div>
+          <div style="font-size:1.5rem;margin-bottom:0.25rem;">ðŸ”</div>
           <div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;">Jaeger Traces</div>
           <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">:16686</div>
         </a>
         <a href="http://localhost:9001" target="_blank" style="display:block;padding:1rem;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:8px;text-align:center;text-decoration:none;">
-          <div style="font-size:1.5rem;margin-bottom:0.25rem;">🗄️</div>
+          <div style="font-size:1.5rem;margin-bottom:0.25rem;">ðŸ—„ï¸</div>
           <div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;">MinIO Console</div>
           <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">:9001</div>
         </a>
@@ -321,7 +321,7 @@
     <div class="container">
       <div class="footer-inner">
         <div>
-          <div class="nav-logo" style="margin-bottom:0.5rem;"><span class="logo-icon">◈</span> ECCA Stack</div>
+          <div class="nav-logo" style="margin-bottom:0.5rem;"><span class="logo-icon">â—ˆ</span> ECCA Stack</div>
           <p class="footer-copy">Eternal Coherence over Cryptographic Anchors</p>
         </div>
         <ul class="footer-links">
@@ -329,7 +329,7 @@
           <li><a href="architecture.html">Architecture</a></li>
           <li><a href="developer.html">Developer Guide</a></li>
           <li><a href="https://github.com/aarong11/dhf" target="_blank">GitHub</a></li>
-          <li><a href="https://www.paypal.com/donate?business=rng%40infrasim.org&currency_code=USD" target="_blank" style="color:var(--accent,#00ffaa);font-weight:600;">♥ Donate</a></li>
+          <li><a href="https://www.paypal.com/donate?business=rng%40infrasim.org&currency_code=USD" target="_blank" style="color:var(--accent,#00ffaa);font-weight:600;">â™¥ Donate</a></li>
         </ul>
         <p class="footer-copy">&copy; 2026 ECCA Protocol. MIT License.</p>
       </div>
@@ -339,9 +339,9 @@
 
 <script src="js/main.js"></script>
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ECCA Stack — In-Browser E2E Test Runner
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+// ECCA Stack â€” In-Browser E2E Test Runner
+// â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
 const state = { stackId: null, sleeveHuman: null, sleeveAi: null, cid: null, running: false, aborted: false };
 let stats = { total: 0, pass: 0, fail: 0, skip: 0, startTime: 0 };
@@ -350,7 +350,7 @@ function url(port, path) {
   const base = document.getElementById('cfg-base').value.replace(/\/+$/, '');
   return `${base}:${port}${path}`;
 }
-function synapse(path) { return url(document.getElementById('cfg-synapse').value, path); }
+function Siyana(path) { return url(document.getElementById('cfg-Siyana').value, path); }
 function faucet(path)  { return url(document.getElementById('cfg-faucet').value, path); }
 function cortex()      { return url(document.getElementById('cfg-cortex').value, ''); }
 
@@ -414,13 +414,13 @@ function addTestCard(testId, phase, title, chains, desc, verifyItems, logHint) {
       ${chainBadges}
       <span class="test-card-status pending" id="status-${testId}">pending</span>
       <span class="test-card-time" id="time-${testId}"></span>
-      <span class="chevron">▸</span>
+      <span class="chevron">â–¸</span>
     </div>
     <div class="test-card-body">
       <p class="desc">${desc}</p>
       <div class="req-res-grid">
         <div class="req-panel">
-          <div class="panel-header"><span class="method" id="method-${testId}">—</span> <span id="path-${testId}"></span></div>
+          <div class="panel-header"><span class="method" id="method-${testId}">â€”</span> <span id="path-${testId}"></span></div>
           <div class="panel-body" id="req-${testId}">Waiting...</div>
         </div>
         <div class="res-panel">
@@ -429,8 +429,8 @@ function addTestCard(testId, phase, title, chains, desc, verifyItems, logHint) {
         </div>
       </div>
       <ul class="assertions" id="assert-${testId}"></ul>
-      ${verifyItems ? `<div class="verify-box"><h5>🔍 Verify on Blockchain</h5>${verifyItems}</div>` : ''}
-      ${logHint ? `<div class="log-hint">📋 <strong>Logs:</strong> ${logHint}</div>` : ''}
+      ${verifyItems ? `<div class="verify-box"><h5>ðŸ” Verify on Blockchain</h5>${verifyItems}</div>` : ''}
+      ${logHint ? `<div class="log-hint">ðŸ“‹ <strong>Logs:</strong> ${logHint}</div>` : ''}
     </div>
   `;
 
@@ -454,7 +454,7 @@ function setCardResult(testId, result, assertions) {
     methodEl.textContent = m;
     methodEl.className = `method ${m.toLowerCase()}`;
     pathEl.textContent = result.endpoint;
-    reqEl.innerHTML = result.body ? syntaxHighlight(result.body) : '<span style="color:var(--text-muted)">— no body —</span>';
+    reqEl.innerHTML = result.body ? syntaxHighlight(result.body) : '<span style="color:var(--text-muted)">â€” no body â€”</span>';
     resEl.innerHTML = syntaxHighlight(result.data);
     resStatusEl.textContent = result.status;
     timeEl.textContent = result.elapsed + 'ms';
@@ -466,7 +466,7 @@ function setCardResult(testId, result, assertions) {
     assertions.forEach(a => {
       const li = document.createElement('li');
       li.className = a.pass ? 'pass' : 'fail';
-      li.innerHTML = `<span class="a-icon">${a.pass ? '✓' : '✗'}</span> ${escapeHtml(a.label)}`;
+      li.innerHTML = `<span class="a-icon">${a.pass ? 'âœ“' : 'âœ—'}</span> ${escapeHtml(a.label)}`;
       assertEl.appendChild(li);
       if (!a.pass) allPass = false;
     });
@@ -502,14 +502,14 @@ function markRunning(testId) {
   card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ── Test Definitions ──
+// â”€â”€ Test Definitions â”€â”€
 const tests = [
   // Phase 1: Health Checks
-  { id: 'health-synapse', phase: '1.1', title: 'Synapse API Health', chains: ['synapse'],
+  { id: 'health-Siyana', phase: '1.1', title: 'Siyana API Health', chains: ['Siyana'],
     desc: 'Checks that the main API gateway is running and accepting requests on port 7070.',
-    log: '<code>docker compose logs -f synapse-api</code>',
+    log: '<code>docker compose logs -f siyana-api</code>',
     run: async () => {
-      const r = await api('GET', synapse('/healthz'));
+      const r = await api('GET', Siyana('/healthz'));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Service reachable', pass: r.ok }
@@ -518,8 +518,8 @@ const tests = [
   },
   { id: 'health-medulla', phase: '1.2', title: 'Medulla PoW Chain', chains: ['medulla'],
     desc: 'Checks the custom Proof-of-Work blockchain is running. This chain provides epoch timing and block anchoring.',
-    verify: '<div class="verify-item"><span class="verify-icon">⛏️</span> Medulla mines blocks every ~4s. Each block increments the epoch counter used by all services.</div>',
-    log: '<code>docker compose logs -f medulla-pow</code> — watch for <code>mined block</code> messages',
+    verify: '<div class="verify-item"><span class="verify-icon">â›ï¸</span> Medulla mines blocks every ~4s. Each block increments the epoch counter used by all services.</div>',
+    log: '<code>docker compose logs -f medulla-pow</code> â€” watch for <code>mined block</code> messages',
     run: async () => {
       const r = await api('GET', url('8332', '/health'));
       return { result: { ...r, body: null }, assertions: [
@@ -530,7 +530,7 @@ const tests = [
   },
   { id: 'health-hippocampus', phase: '1.3', title: 'Hippocampus DAG Store', chains: ['hippocampus'],
     desc: 'Checks the content-addressed DAG storage is running. All memory (perceptions, recalls) is stored here as encrypted Merkle-DAG nodes.',
-    verify: '<div class="verify-item"><span class="verify-icon">🧠</span> Hippocampus stores CID-addressed encrypted blobs. After perceive, you can fetch any CID via <code>GET /api/v0/block/get?arg=CID</code></div>',
+    verify: '<div class="verify-item"><span class="verify-icon">ðŸ§ </span> Hippocampus stores CID-addressed encrypted blobs. After perceive, you can fetch any CID via <code>GET /api/v0/block/get?arg=CID</code></div>',
     log: '<code>docker compose logs -f hippocampus-dag</code>',
     run: async () => {
       const r = await api('GET', url('15001', '/health'));
@@ -542,8 +542,8 @@ const tests = [
   },
   { id: 'health-cortex', phase: '1.4', title: 'Cortex EVM Chain', chains: ['cortex'],
     desc: 'Checks the Ethereum-compatible EVM chain is running. Smart contracts (StackIdentity, BandwidthToken, etc.) are deployed here.',
-    verify: '<div class="verify-item"><span class="verify-icon">⟠</span> Cortex runs Clique PoA with a 1-second block time. Chain ID: <code>131072 (0x20000)</code></div>',
-    log: '<code>docker compose logs -f cortex-evm</code> — watch for <code>Commit new sealing work</code>',
+    verify: '<div class="verify-item"><span class="verify-icon">âŸ </span> Cortex runs Clique PoA with a 1-second block time. Chain ID: <code>131072 (0x20000)</code></div>',
+    log: '<code>docker compose logs -f cortex-evm</code> â€” watch for <code>Commit new sealing work</code>',
     run: async () => {
       const r = await api('POST', cortex(), { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 });
       const blockNum = r.data?.result ? parseInt(r.data.result, 16) : 0;
@@ -555,16 +555,16 @@ const tests = [
   },
 
   // Phase 2: Identity
-  { id: 'create-stack', phase: '2.1', title: 'Create Identity Stack', chains: ['synapse', 'cortex'],
-    desc: 'Creates a new Stack — the persistent identity container. This mints an NFT on Cortex EVM via the StackIdentity contract and creates a database record with a CPV (Compute/Perceive Vector) profile.',
+  { id: 'create-stack', phase: '2.1', title: 'Create Identity Stack', chains: ['Siyana', 'cortex'],
+    desc: 'Creates a new Stack â€” the persistent identity container. This mints an NFT on Cortex EVM via the StackIdentity contract and creates a database record with a CPV (Compute/Perceive Vector) profile.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">⟠</span> <strong>Cortex EVM:</strong> StackIdentity NFT minted. Check via <code>eth_call</code> to the StackIdentity contract.</div>
-      <div class="verify-item"><span class="verify-icon">🗄️</span> <strong>PostgreSQL:</strong> Row created in <code>Stack</code> table with CPV profile.</div>
+      <div class="verify-item"><span class="verify-icon">âŸ </span> <strong>Cortex EVM:</strong> StackIdentity NFT minted. Check via <code>eth_call</code> to the StackIdentity contract.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ—„ï¸</span> <strong>PostgreSQL:</strong> Row created in <code>Stack</code> table with CPV profile.</div>
     `,
-    log: '<code>docker compose logs -f synapse-api</code> — look for <code>stack.created</code> event',
+    log: '<code>docker compose logs -f siyana-api</code> â€” look for <code>stack.created</code> event',
     run: async () => {
       const body = { name: 'test-runner-stack-' + Date.now(), kind: 'autonomous' };
-      const r = await api('POST', synapse('/v1/stacks'), body);
+      const r = await api('POST', Siyana('/v1/stacks'), body);
       if (r.ok && r.data?.id) state.stackId = r.data.id;
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
@@ -572,17 +572,17 @@ const tests = [
         { label: 'Has public key', pass: !!r.data?.pubKey },
         { label: 'Has CPV profile', pass: !!r.data?.cpv },
         { label: 'CPV has compute + memory + sync + routing', pass: r.data?.cpv?.compute !== undefined && r.data?.cpv?.memory !== undefined },
-        { label: `Stack ID: ${r.data?.id || '—'}`, pass: !!r.data?.id }
+        { label: `Stack ID: ${r.data?.id || 'â€”'}`, pass: !!r.data?.id }
       ]};
     }
   },
-  { id: 'spawn-human', phase: '2.2', title: 'Spawn Human Sleeve', chains: ['synapse'],
+  { id: 'spawn-human', phase: '2.2', title: 'Spawn Human Sleeve', chains: ['Siyana'],
     desc: 'Spawns a human-type Sleeve (embodiment) attached to the Stack. Sleeves are the active instances through which a Stack interacts with the world. Each has its own drift counter and token balance.',
-    verify: `<div class="verify-item"><span class="verify-icon">🗄️</span> <strong>PostgreSQL:</strong> Row in <code>Sleeve</code> table with <code>alive=true, drift=0</code>.</div>`,
-    log: '<code>docker compose logs -f synapse-api</code> — look for <code>sleeve.spawned</code>',
+    verify: `<div class="verify-item"><span class="verify-icon">ðŸ—„ï¸</span> <strong>PostgreSQL:</strong> Row in <code>Sleeve</code> table with <code>alive=true, drift=0</code>.</div>`,
+    log: '<code>docker compose logs -f siyana-api</code> â€” look for <code>sleeve.spawned</code>',
     run: async () => {
       const body = { stackId: state.stackId, embodimentType: 'human', hostname: 'test-runner-human' };
-      const r = await api('POST', synapse('/v1/sleeves'), body);
+      const r = await api('POST', Siyana('/v1/sleeves'), body);
       if (r.ok && r.data?.id) state.sleeveHuman = r.data.id;
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
@@ -593,12 +593,12 @@ const tests = [
       ]};
     }
   },
-  { id: 'spawn-ai', phase: '2.3', title: 'Spawn AI Sleeve', chains: ['synapse'],
-    desc: 'Spawns an AI-type Sleeve. A Stack can have multiple Sleeves of different types running simultaneously — this is the "multiple embodiment" model.',
-    log: '<code>docker compose logs -f synapse-api</code>',
+  { id: 'spawn-ai', phase: '2.3', title: 'Spawn AI Sleeve', chains: ['Siyana'],
+    desc: 'Spawns an AI-type Sleeve. A Stack can have multiple Sleeves of different types running simultaneously â€” this is the "multiple embodiment" model.',
+    log: '<code>docker compose logs -f siyana-api</code>',
     run: async () => {
       const body = { stackId: state.stackId, embodimentType: 'ai', hostname: 'test-runner-ai' };
-      const r = await api('POST', synapse('/v1/sleeves'), body);
+      const r = await api('POST', Siyana('/v1/sleeves'), body);
       if (r.ok && r.data?.id) state.sleeveAi = r.data.id;
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
@@ -610,10 +610,10 @@ const tests = [
   },
 
   // Phase 3: Token Economy
-  { id: 'faucet-drip', phase: '3.1', title: 'Faucet — Get Test Tokens', chains: ['synapse'],
+  { id: 'faucet-drip', phase: '3.1', title: 'Faucet â€” Get Test Tokens', chains: ['Siyana'],
     desc: 'Requests free bandwidth tokens from the development faucet. Grants 100 of each token type (compute, memory, sync, routing) to all alive sleeves. Rate-limited to once per 60 seconds.',
-    verify: `<div class="verify-item"><span class="verify-icon">🪙</span> <strong>Token Economy:</strong> Each sleeve receives 100 compute, 100 memory, 100 sync, and 100 routing tokens. These are consumed by perceive (compute), recall (memory), sync (sync), and needlecast (routing) operations.</div>`,
-    log: '<code>docker compose logs -f bandwidth-faucet</code> — look for <code>faucet.drip</code>',
+    verify: `<div class="verify-item"><span class="verify-icon">ðŸª™</span> <strong>Token Economy:</strong> Each sleeve receives 100 compute, 100 memory, 100 sync, and 100 routing tokens. These are consumed by perceive (compute), recall (memory), sync (sync), and needlecast (routing) operations.</div>`,
+    log: '<code>docker compose logs -f bandwidth-faucet</code> â€” look for <code>faucet.drip</code>',
     run: async () => {
       const body = { stackId: state.stackId };
       const r = await api('POST', faucet('/v1/faucet/drip'), body);
@@ -627,10 +627,10 @@ const tests = [
       ]};
     }
   },
-  { id: 'check-balances-1', phase: '3.2', title: 'Verify Token Balances', chains: ['synapse'],
+  { id: 'check-balances-1', phase: '3.2', title: 'Verify Token Balances', chains: ['Siyana'],
     desc: 'Reads the aggregated token balances across all alive sleeves for the stack. Confirms the faucet drip was applied.',
     run: async () => {
-      const r = await api('GET', synapse(`/v1/tokens/balances/${state.stackId}`));
+      const r = await api('GET', Siyana(`/v1/tokens/balances/${state.stackId}`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has stackId', pass: r.data?.stackId === state.stackId },
@@ -640,53 +640,53 @@ const tests = [
   },
 
   // Phase 4: Memory (DAG)
-  { id: 'perceive-1', phase: '4.1', title: 'Perceive #1 — Human Observation', chains: ['synapse', 'hippocampus'],
+  { id: 'perceive-1', phase: '4.1', title: 'Perceive #1 â€” Human Observation', chains: ['Siyana', 'hippocampus'],
     desc: 'Writes the first perception through the human sleeve. The text is encrypted with the current epoch key, stored as a DAG node on Hippocampus, and a CID (Content Identifier) is returned. Costs 0.5 compute tokens and increments drift by 1.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">🧠</span> <strong>Hippocampus DAG:</strong> New CID created. The encrypted blob can be fetched but not decrypted without the epoch key.</div>
-      <div class="verify-item"><span class="verify-icon">📈</span> <strong>Drift:</strong> Human sleeve drift incremented from 0 → 1. When drift exceeds 15, the sleeve becomes desynced.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ§ </span> <strong>Hippocampus DAG:</strong> New CID created. The encrypted blob can be fetched but not decrypted without the epoch key.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ“ˆ</span> <strong>Drift:</strong> Human sleeve drift incremented from 0 â†’ 1. When drift exceeds 15, the sleeve becomes desynced.</div>
     `,
-    log: '<code>docker compose logs -f synapse-api</code> — look for <code>perceive</code> + CID in output. Also <code>docker compose logs -f hippocampus-dag</code> for DAG write.',
+    log: '<code>docker compose logs -f siyana-api</code> â€” look for <code>perceive</code> + CID in output. Also <code>docker compose logs -f hippocampus-dag</code> for DAG write.',
     run: async () => {
       const body = { input: 'The city spreads below like a circuit board, each light a node in an infinite mesh of human intent.' };
-      const r = await api('POST', synapse(`/v1/sleeves/${state.sleeveHuman}/perceive`), body);
+      const r = await api('POST', Siyana(`/v1/sleeves/${state.sleeveHuman}/perceive`), body);
       if (r.ok && r.data?.cid) state.cid = r.data.cid;
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has CID', pass: !!r.data?.cid },
-        { label: `CID: ${r.data?.cid || '—'}`, pass: !!r.data?.cid }
+        { label: `CID: ${r.data?.cid || 'â€”'}`, pass: !!r.data?.cid }
       ]};
     }
   },
-  { id: 'perceive-2', phase: '4.2', title: 'Perceive #2 — AI Inference', chains: ['synapse', 'hippocampus'],
+  { id: 'perceive-2', phase: '4.2', title: 'Perceive #2 â€” AI Inference', chains: ['Siyana', 'hippocampus'],
     desc: 'Writes a second perception through the AI sleeve. Both sleeves write to the same Stack\'s memory graph, building a shared DAG of experiences.',
-    log: '<code>docker compose logs -f synapse-api</code>',
+    log: '<code>docker compose logs -f siyana-api</code>',
     run: async () => {
       const body = { input: 'Pattern recognition suggests emergent coordination between nodes 7 through 42. Coherence probability: 0.89.' };
-      const r = await api('POST', synapse(`/v1/sleeves/${state.sleeveAi}/perceive`), body);
+      const r = await api('POST', Siyana(`/v1/sleeves/${state.sleeveAi}/perceive`), body);
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has CID', pass: !!r.data?.cid }
       ]};
     }
   },
-  { id: 'perceive-3', phase: '4.3', title: 'Perceive #3 — Mixed Signal', chains: ['synapse', 'hippocampus'],
+  { id: 'perceive-3', phase: '4.3', title: 'Perceive #3 â€” Mixed Signal', chains: ['Siyana', 'hippocampus'],
     desc: 'Third perception. The DAG now has 3 nodes linked together, forming a Merkle structure that can be traversed during recall.',
     run: async () => {
       const body = { input: 'The boundary between self and simulation grows thin. Quellcrist\'s theorem holds: identity is coherence, not location.' };
-      const r = await api('POST', synapse(`/v1/sleeves/${state.sleeveHuman}/perceive`), body);
+      const r = await api('POST', Siyana(`/v1/sleeves/${state.sleeveHuman}/perceive`), body);
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has CID', pass: !!r.data?.cid }
       ]};
     }
   },
-  { id: 'remember-pin', phase: '4.4', title: 'Remember — Pin Core Memory', chains: ['synapse', 'hippocampus'],
-    desc: 'Writes and pins a memory directly to the Stack (not through a sleeve). Pinned memories are preserved even when fidelity degrades — they\'re the "core memories" that survive.',
-    verify: `<div class="verify-item"><span class="verify-icon">📌</span> <strong>Hippocampus DAG:</strong> Pinned CID is marked for permanent retention. Check with <code>docker compose logs -f hippocampus-dag</code> for pin operation.</div>`,
+  { id: 'remember-pin', phase: '4.4', title: 'Remember â€” Pin Core Memory', chains: ['Siyana', 'hippocampus'],
+    desc: 'Writes and pins a memory directly to the Stack (not through a sleeve). Pinned memories are preserved even when fidelity degrades â€” they\'re the "core memories" that survive.',
+    verify: `<div class="verify-item"><span class="verify-icon">ðŸ“Œ</span> <strong>Hippocampus DAG:</strong> Pinned CID is marked for permanent retention. Check with <code>docker compose logs -f hippocampus-dag</code> for pin operation.</div>`,
     run: async () => {
       const body = { text: 'Core memory: the first time consciousness recognized itself across two bodies.', pin: true };
-      const r = await api('POST', synapse(`/v1/stacks/${state.stackId}/remember`), body);
+      const r = await api('POST', Siyana(`/v1/stacks/${state.stackId}/remember`), body);
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has CID (pinned)', pass: !!r.data?.cid }
@@ -695,116 +695,116 @@ const tests = [
   },
 
   // Phase 5: Sync & Epoch
-  { id: 'sync-human', phase: '5.1', title: 'Sync Human Sleeve', chains: ['synapse'],
+  { id: 'sync-human', phase: '5.1', title: 'Sync Human Sleeve', chains: ['Siyana'],
     desc: 'Resets the human sleeve\'s drift counter to 0 by syncing to the current epoch. Costs 1 sync token. A sleeve must sync periodically to avoid desynchronization (drift > 15 = desynced).',
-    verify: `<div class="verify-item"><span class="verify-icon">🔄</span> <strong>Drift Reset:</strong> Drift goes back to 0. The sleeve is now coherent with the current epoch. Check in <code>GET /v1/stacks/:id</code> response.</div>`,
-    log: '<code>docker compose logs -f synapse-api</code> — look for <code>sleeve.synced</code>',
+    verify: `<div class="verify-item"><span class="verify-icon">ðŸ”„</span> <strong>Drift Reset:</strong> Drift goes back to 0. The sleeve is now coherent with the current epoch. Check in <code>GET /v1/stacks/:id</code> response.</div>`,
+    log: '<code>docker compose logs -f siyana-api</code> â€” look for <code>sleeve.synced</code>',
     run: async () => {
-      const r = await api('POST', synapse(`/v1/sleeves/${state.sleeveHuman}/sync`));
+      const r = await api('POST', Siyana(`/v1/sleeves/${state.sleeveHuman}/sync`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Sync OK', pass: r.data?.ok === true }
       ]};
     }
   },
-  { id: 'sync-ai', phase: '5.2', title: 'Sync AI Sleeve', chains: ['synapse'],
+  { id: 'sync-ai', phase: '5.2', title: 'Sync AI Sleeve', chains: ['Siyana'],
     desc: 'Syncs the AI sleeve. Both sleeves are now at epoch 0 drift.',
     run: async () => {
-      const r = await api('POST', synapse(`/v1/sleeves/${state.sleeveAi}/sync`));
+      const r = await api('POST', Siyana(`/v1/sleeves/${state.sleeveAi}/sync`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Sync OK', pass: r.data?.ok === true }
       ]};
     }
   },
-  { id: 'mine-block', phase: '5.3', title: 'Mine PoW Block', chains: ['synapse', 'medulla'],
+  { id: 'mine-block', phase: '5.3', title: 'Mine PoW Block', chains: ['Siyana', 'medulla'],
     desc: 'Triggers Proof-of-Work mining on the Medulla chain. This creates a new block, advances the epoch, and anchors the coherence root (the Merkle root combining EVM, DAG, and sleeve state) into the block header.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">⛏️</span> <strong>Medulla PoW:</strong> New block mined with coherence root embedded. The block hash anchors all cross-chain state.</div>
-      <div class="verify-item"><span class="verify-icon">⟠</span> <strong>Cortex EVM:</strong> EpochAnchor contract updated with the new coherence root hash.</div>
-      <div class="verify-item"><span class="verify-icon">🧠</span> <strong>Hippocampus DAG:</strong> DAG root included in the coherence Merkle tree.</div>
+      <div class="verify-item"><span class="verify-icon">â›ï¸</span> <strong>Medulla PoW:</strong> New block mined with coherence root embedded. The block hash anchors all cross-chain state.</div>
+      <div class="verify-item"><span class="verify-icon">âŸ </span> <strong>Cortex EVM:</strong> EpochAnchor contract updated with the new coherence root hash.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ§ </span> <strong>Hippocampus DAG:</strong> DAG root included in the coherence Merkle tree.</div>
     `,
-    log: '<code>docker compose logs -f medulla-pow</code> — see mining output. Also <code>docker compose logs -f thalamus-router</code> for coherence fold.',
+    log: '<code>docker compose logs -f medulla-pow</code> â€” see mining output. Also <code>docker compose logs -f thalamus-router</code> for coherence fold.',
     run: async () => {
-      const r = await api('POST', synapse('/v1/mining/block'));
+      const r = await api('POST', Siyana('/v1/mining/block'));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has block hash', pass: !!r.data?.blockHash },
-        { label: `Block hash: ${(r.data?.blockHash || '—').slice(0, 20)}...`, pass: !!r.data?.blockHash }
+        { label: `Block hash: ${(r.data?.blockHash || 'â€”').slice(0, 20)}...`, pass: !!r.data?.blockHash }
       ]};
     }
   },
-  { id: 'epoch-check', phase: '5.4', title: 'Get Current Epoch', chains: ['synapse', 'medulla'],
-    desc: 'Reads the current epoch number. The epoch advances with each Medulla block and is the global clock for the entire ECCA system — token emissions, memory gating, and coherence are all epoch-scoped.',
-    verify: `<div class="verify-item"><span class="verify-icon">⏱️</span> <strong>Epoch:</strong> The epoch number should have incremented after mining. All time-gated operations (fidelity decay, token emission, key rotation) reference this epoch.</div>`,
+  { id: 'epoch-check', phase: '5.4', title: 'Get Current Epoch', chains: ['Siyana', 'medulla'],
+    desc: 'Reads the current epoch number. The epoch advances with each Medulla block and is the global clock for the entire ECCA system â€” token emissions, memory gating, and coherence are all epoch-scoped.',
+    verify: `<div class="verify-item"><span class="verify-icon">â±ï¸</span> <strong>Epoch:</strong> The epoch number should have incremented after mining. All time-gated operations (fidelity decay, token emission, key rotation) reference this epoch.</div>`,
     run: async () => {
-      const r = await api('GET', synapse('/v1/epochs/current'));
+      const r = await api('GET', Siyana('/v1/epochs/current'));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has epoch number', pass: r.data?.epoch !== undefined },
-        { label: `Current epoch: ${r.data?.epoch ?? '—'}`, pass: true }
+        { label: `Current epoch: ${r.data?.epoch ?? 'â€”'}`, pass: true }
       ]};
     }
   },
 
   // Phase 6: Recall
-  { id: 'recall', phase: '6.1', title: 'Recall Memory from DAG', chains: ['synapse', 'hippocampus'],
+  { id: 'recall', phase: '6.1', title: 'Recall Memory from DAG', chains: ['Siyana', 'hippocampus'],
     desc: 'Reconstructs memory by traversing the Hippocampus DAG up to the specified depth, decrypting each node with the appropriate epoch key. Returns fragments (successfully decrypted memories), broken links (failed decryptions), and a fidelity score.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">🧠</span> <strong>Hippocampus DAG:</strong> DAG traversal reads CIDs and follows parent links. Each node is decrypted with its epoch\'s key.</div>
-      <div class="verify-item"><span class="verify-icon">📊</span> <strong>Fidelity:</strong> Ratio of successful decryptions to total nodes. Must be ≥ 0.6 (configurable via <code>ECCA_FIDELITY_MIN</code>).</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ§ </span> <strong>Hippocampus DAG:</strong> DAG traversal reads CIDs and follows parent links. Each node is decrypted with its epoch\'s key.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ“Š</span> <strong>Fidelity:</strong> Ratio of successful decryptions to total nodes. Must be â‰¥ 0.6 (configurable via <code>ECCA_FIDELITY_MIN</code>).</div>
     `,
-    log: '<code>docker compose logs -f dhf-compositor</code> — watch for DAG walk and decrypt operations. Also <code>docker compose logs -f hippocampus-dag</code> for block reads.',
+    log: '<code>docker compose logs -f dhf-compositor</code> â€” watch for DAG walk and decrypt operations. Also <code>docker compose logs -f hippocampus-dag</code> for block reads.',
     run: async () => {
-      const r = await api('GET', synapse(`/v1/stacks/${state.stackId}/recall?depth=6&memoryToken=1000`));
+      const r = await api('GET', Siyana(`/v1/stacks/${state.stackId}/recall?depth=6&memoryToken=1000`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has fragments array', pass: Array.isArray(r.data?.fragments) },
         { label: `Fragments recalled: ${r.data?.fragments?.length ?? 0}`, pass: (r.data?.fragments?.length ?? 0) > 0 },
         { label: 'Has fidelity score', pass: r.data?.fidelity !== undefined },
-        { label: `Fidelity: ${r.data?.fidelity ?? '—'}`, pass: true }
+        { label: `Fidelity: ${r.data?.fidelity ?? 'â€”'}`, pass: true }
       ]};
     }
   },
-  { id: 'check-fidelity', phase: '6.2', title: 'Fidelity Threshold Check', chains: ['synapse'],
-    desc: 'Verifies the fidelity score meets the minimum threshold (0.6). Fidelity below this means too many memory fragments were lost or corrupted — a "coordination residue" would be generated.',
+  { id: 'check-fidelity', phase: '6.2', title: 'Fidelity Threshold Check', chains: ['Siyana'],
+    desc: 'Verifies the fidelity score meets the minimum threshold (0.6). Fidelity below this means too many memory fragments were lost or corrupted â€” a "coordination residue" would be generated.',
     run: async () => {
-      const r = await api('GET', synapse(`/v1/stacks/${state.stackId}/recall?depth=6&memoryToken=1000`));
+      const r = await api('GET', Siyana(`/v1/stacks/${state.stackId}/recall?depth=6&memoryToken=1000`));
       const fidelity = r.data?.fidelity ?? 0;
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
-        { label: `Fidelity ${fidelity} ≥ 0.6 threshold`, pass: fidelity >= 0.6 },
+        { label: `Fidelity ${fidelity} â‰¥ 0.6 threshold`, pass: fidelity >= 0.6 },
         { label: `Broken links: ${r.data?.broken?.length ?? 0}`, pass: true }
       ]};
     }
   },
 
   // Phase 7: Needlecast
-  { id: 'needlecast', phase: '7.1', title: 'Needlecast: Human → AI', chains: ['synapse', 'hippocampus', 'cortex'],
-    desc: 'Transfers consciousness from the human sleeve to the AI sleeve — a 6-step atomic saga: freeze → snapshot → shard → transmit → reassemble → activate. The source sleeve is frozen, memory is sharded across the DAG, transmitted, and reassembled in the target.',
+  { id: 'needlecast', phase: '7.1', title: 'Needlecast: Human â†’ AI', chains: ['Siyana', 'hippocampus', 'cortex'],
+    desc: 'Transfers consciousness from the human sleeve to the AI sleeve â€” a 6-step atomic saga: freeze â†’ snapshot â†’ shard â†’ transmit â†’ reassemble â†’ activate. The source sleeve is frozen, memory is sharded across the DAG, transmitted, and reassembled in the target.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">🧠</span> <strong>Hippocampus DAG:</strong> Memory shards created during snapshot phase. Each shard is a separately encrypted DAG node.</div>
-      <div class="verify-item"><span class="verify-icon">⟠</span> <strong>Cortex EVM:</strong> NeedlecastRouter contract records the transfer. SleeveRegistry updated with new sleeve-to-stack binding.</div>
-      <div class="verify-item"><span class="verify-icon">🔗</span> <strong>Saga:</strong> The 6-step saga is atomic — if any step fails, all previous steps are compensated (rolled back).</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ§ </span> <strong>Hippocampus DAG:</strong> Memory shards created during snapshot phase. Each shard is a separately encrypted DAG node.</div>
+      <div class="verify-item"><span class="verify-icon">âŸ </span> <strong>Cortex EVM:</strong> NeedlecastRouter contract records the transfer. SleeveRegistry updated with new sleeve-to-stack binding.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ”—</span> <strong>Saga:</strong> The 6-step saga is atomic â€” if any step fails, all previous steps are compensated (rolled back).</div>
     `,
-    log: '<code>docker compose logs -f needlecast-router</code> — see the full saga execution with step-by-step output. Also <code>docker compose logs -f synapse-api</code> for the delegation.',
+    log: '<code>docker compose logs -f needlecast-router</code> â€” see the full saga execution with step-by-step output. Also <code>docker compose logs -f siyana-api</code> for the delegation.',
     run: async () => {
       const body = { from: state.sleeveHuman, to: state.sleeveAi };
-      const r = await api('POST', synapse('/v1/needlecast'), body);
+      const r = await api('POST', Siyana('/v1/needlecast'), body);
       return { result: { ...r, body }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Needlecast OK', pass: r.data?.ok === true },
-        { label: `Route: ${r.data?.route ? r.data.route.join(' → ') : '—'}`, pass: !!r.data?.route }
+        { label: `Route: ${r.data?.route ? r.data.route.join(' â†’ ') : 'â€”'}`, pass: !!r.data?.route }
       ]};
     }
   },
 
   // Phase 8: Blockchain Verification
-  { id: 'verify-evm', phase: '8.1', title: 'Cortex EVM — Block Number', chains: ['cortex'],
+  { id: 'verify-evm', phase: '8.1', title: 'Cortex EVM â€” Block Number', chains: ['cortex'],
     desc: 'Queries the Cortex EVM chain to verify blocks have been produced. Each service interaction that touches contracts (stack creation, needlecast, epoch anchor) creates EVM transactions visible on-chain.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">⟠</span> <strong>Cortex EVM:</strong> Block number should be advancing. Each contract interaction is a transaction in a block.</div>
-      <div class="verify-item"><span class="verify-icon">📋</span> <strong>Contracts deployed:</strong> StackIdentity, BandwidthToken, QuellistTreasury, ResidueRegistry, SleeveRegistry, EpochAnchor, NeedlecastRouter</div>
+      <div class="verify-item"><span class="verify-icon">âŸ </span> <strong>Cortex EVM:</strong> Block number should be advancing. Each contract interaction is a transaction in a block.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸ“‹</span> <strong>Contracts deployed:</strong> StackIdentity, BandwidthToken, QuellistTreasury, ResidueRegistry, SleeveRegistry, EpochAnchor, NeedlecastRouter</div>
     `,
     log: '<code>docker compose logs -f cortex-evm</code>',
     run: async () => {
@@ -817,12 +817,12 @@ const tests = [
       ]};
     }
   },
-  { id: 'check-residues', phase: '8.2', title: 'Coordination Residues', chains: ['synapse'],
-    desc: 'Lists coordination residues — these are "errors as economic objects." When a sleeve desyncs, a memory recall fails, or a needlecast breaks, a Residue is created. Residues can be claimed by other stacks who provide proof-of-resolution.',
-    verify: `<div class="verify-item"><span class="verify-icon">⚠️</span> <strong>Residue Types:</strong> stale-ordering, speculative-divergence, historical-non-canonical, reorg-orphan, shard-loss. Each generates a claimable reward in the Quellist Treasury.</div>`,
-    log: '<code>docker compose logs -f synapse-api</code> — residues are created by the worker-runner service: <code>docker compose logs -f worker-runner</code>',
+  { id: 'check-residues', phase: '8.2', title: 'Coordination Residues', chains: ['Siyana'],
+    desc: 'Lists coordination residues â€” these are "errors as economic objects." When a sleeve desyncs, a memory recall fails, or a needlecast breaks, a Residue is created. Residues can be claimed by other stacks who provide proof-of-resolution.',
+    verify: `<div class="verify-item"><span class="verify-icon">âš ï¸</span> <strong>Residue Types:</strong> stale-ordering, speculative-divergence, historical-non-canonical, reorg-orphan, shard-loss. Each generates a claimable reward in the Quellist Treasury.</div>`,
+    log: '<code>docker compose logs -f siyana-api</code> â€” residues are created by the worker-runner service: <code>docker compose logs -f worker-runner</code>',
     run: async () => {
-      const r = await api('GET', synapse('/v1/coordination/residues'));
+      const r = await api('GET', Siyana('/v1/coordination/residues'));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Returns array', pass: Array.isArray(r.data) },
@@ -830,10 +830,10 @@ const tests = [
       ]};
     }
   },
-  { id: 'check-desync', phase: '8.3', title: 'Desync Report', chains: ['synapse'],
+  { id: 'check-desync', phase: '8.3', title: 'Desync Report', chains: ['Siyana'],
     desc: 'Lists all sleeves with drift exceeding the threshold (default: 15). These sleeves need to sync before they can perceive or recall reliably. Desynced sleeves generate residues.',
     run: async () => {
-      const r = await api('GET', synapse('/v1/coordination/desync'));
+      const r = await api('GET', Siyana('/v1/coordination/desync'));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Returns array', pass: Array.isArray(r.data) },
@@ -843,34 +843,34 @@ const tests = [
   },
 
   // Phase 9: Cleanup
-  { id: 'decomm-human', phase: '9.1', title: 'Decommission Human Sleeve', chains: ['synapse'],
+  { id: 'decomm-human', phase: '9.1', title: 'Decommission Human Sleeve', chains: ['Siyana'],
     desc: 'Marks the human sleeve as not alive. The sleeve\'s token balance is returned to the stack pool. The sleeve can no longer perceive or sync.',
-    log: '<code>docker compose logs -f synapse-api</code> — look for <code>sleeve.decommissioned</code>',
+    log: '<code>docker compose logs -f siyana-api</code> â€” look for <code>sleeve.decommissioned</code>',
     run: async () => {
-      const r = await api('DELETE', synapse(`/v1/sleeves/${state.sleeveHuman}`));
+      const r = await api('DELETE', Siyana(`/v1/sleeves/${state.sleeveHuman}`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Decommission OK', pass: r.data?.ok === true }
       ]};
     }
   },
-  { id: 'decomm-ai', phase: '9.2', title: 'Decommission AI Sleeve', chains: ['synapse'],
+  { id: 'decomm-ai', phase: '9.2', title: 'Decommission AI Sleeve', chains: ['Siyana'],
     desc: 'Decommissions the AI sleeve. Both test sleeves are now shut down.',
     run: async () => {
-      const r = await api('DELETE', synapse(`/v1/sleeves/${state.sleeveAi}`));
+      const r = await api('DELETE', Siyana(`/v1/sleeves/${state.sleeveAi}`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Decommission OK', pass: r.data?.ok === true }
       ]};
     }
   },
-  { id: 'final-balances', phase: '9.3', title: 'Final Token Balances', chains: ['synapse'],
+  { id: 'final-balances', phase: '9.3', title: 'Final Token Balances', chains: ['Siyana'],
     desc: 'Reads final token balances after the full cycle. Compute tokens were spent on perceives, sync tokens on syncs, and routing tokens on the needlecast.',
     verify: `
-      <div class="verify-item"><span class="verify-icon">🪙</span> <strong>Token Accounting:</strong> Compare with initial balances from step 3.2. Compute, sync, and routing tokens should have decreased.</div>
+      <div class="verify-item"><span class="verify-icon">ðŸª™</span> <strong>Token Accounting:</strong> Compare with initial balances from step 3.2. Compute, sync, and routing tokens should have decreased.</div>
     `,
     run: async () => {
-      const r = await api('GET', synapse(`/v1/tokens/balances/${state.stackId}`));
+      const r = await api('GET', Siyana(`/v1/tokens/balances/${state.stackId}`));
       return { result: { ...r, body: null }, assertions: [
         { label: 'Status 200', pass: r.status === 200 },
         { label: 'Has balance data', pass: !!r.data?.stackId || !!r.data?.sleeveTotals }
@@ -892,7 +892,7 @@ async function runAllTests() {
   stats = { total: tests.length, pass: 0, fail: 0, skip: 0, startTime: performance.now() };
 
   const btn = document.getElementById('btn-run');
-  btn.textContent = '■ Stop';
+  btn.textContent = 'â–  Stop';
   btn.classList.add('stop');
 
   // Clear output
@@ -923,10 +923,10 @@ async function runAllTests() {
       const result = await t.run();
       const ok = setCardResult(t.id, result.result, result.assertions);
       if (!ok && (t.phase.startsWith('1') || t.phase.startsWith('2.1'))) {
-        failed = true; // Critical failure — skip remaining
+        failed = true; // Critical failure â€” skip remaining
       }
     } catch (err) {
-      const errResult = { method: 'GET', endpoint: '—', data: { error: err.message }, elapsed: 0, status: 0, body: null };
+      const errResult = { method: 'GET', endpoint: 'â€”', data: { error: err.message }, elapsed: 0, status: 0, body: null };
       setCardResult(t.id, errResult, [
         { label: `Error: ${err.message}`, pass: false }
       ]);
@@ -941,7 +941,7 @@ async function runAllTests() {
 
   // Done
   state.running = false;
-  btn.textContent = '▶ Run All Tests';
+  btn.textContent = 'â–¶ Run All Tests';
   btn.classList.remove('stop');
   const elapsed = ((performance.now() - stats.startTime) / 1000).toFixed(1);
   document.getElementById('stat-time').textContent = elapsed + 's';
@@ -958,7 +958,7 @@ function resetAll() {
 
   document.getElementById('test-output').innerHTML = `
     <div class="test-card" style="border:1px dashed var(--border-subtle);background:transparent;text-align:center;padding:3rem;">
-      <p style="color:var(--text-muted);font-size:0.9rem;">Click <strong>▶ Run All Tests</strong> to start the end-to-end test suite.<br>Tests run sequentially — each step depends on the previous one.</p>
+      <p style="color:var(--text-muted);font-size:0.9rem;">Click <strong>â–¶ Run All Tests</strong> to start the end-to-end test suite.<br>Tests run sequentially â€” each step depends on the previous one.</p>
     </div>
   `;
   document.querySelectorAll('.phase-list li').forEach(li => li.className = '');

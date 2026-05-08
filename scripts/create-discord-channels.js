@@ -24,7 +24,7 @@ const CATEGORIES = [
       { name: 'dev-general', topic: 'Engineering discussion' },
       { name: 'chains', topic: 'Medulla PoW, Hippocampus DAG, Cortex EVM' },
       { name: 'smart-contracts', topic: 'Solidity, token mechanics, residue registry' },
-      { name: 'services', topic: 'synapse-api, thalamus, compositor, needlecast' },
+      { name: 'services', topic: 'siyana-api, thalamus, compositor, needlecast' },
       { name: 'cryptography', topic: 'Coherence root, MMR, HKDF, epoch keys' },
       { name: 'infrastructure', topic: 'Docker, K8s, CI/CD, observability' },
     ],

@@ -108,7 +108,7 @@
           <ul>
             <li><a href="#postman">Testing Options</a></li>
             <li><a href="test-runner.html" style="color:var(--neon-cyan);">▶ Open Test Runner</a></li>
-            <li><a href="#api-synapse">Synapse API</a></li>
+            <li><a href="#api-siyana">Siyana API</a></li>
             <li><a href="#api-faucet">Bandwidth Faucet</a></li>
             <li><a href="#api-thalamus">Thalamus Router</a></li>
             <li><a href="#api-compositor">DHF Compositor</a></li>
@@ -239,7 +239,7 @@ cd dhf</code></pre>
             <tr><td>ECCA_EPOCH_INTERVAL_MS</td><td>4000</td><td>Epoch tick interval</td></tr>
             <tr><td>ECCA_DRIFT_MAX</td><td>15</td><td>Max drift before desync</td></tr>
             <tr><td>ECCA_FIDELITY_MIN</td><td>0.6</td><td>Minimum recall fidelity</td></tr>
-            <tr><td>SYNAPSE_PORT</td><td>7070</td><td>Main API port</td></tr>
+            <tr><td>SIYANA_PORT</td><td>7070</td><td>Main API port</td></tr>
             <tr><td>LLM_PROVIDER</td><td>ollama</td><td>ollama | openai | anthropic</td></tr>
           </tbody>
         </table>
@@ -279,7 +279,7 @@ cd dhf</code></pre>
 docker compose ps
 
 # Health checks
-curl http://localhost:7070/healthz       # Synapse API
+curl http://localhost:7070/healthz       # Siyana API
 curl http://localhost:8332/health        # Medulla PoW
 curl http://localhost:15001/health       # Hippocampus DAG</code></pre>
             </div>
@@ -385,13 +385,13 @@ pnpm demo</code></pre>
 
         <hr class="neon-divider">
 
-        <!-- SYNAPSE API -->
-        <div class="service-section" id="api-synapse">
+        <!-- SIYANA API -->
+        <div class="service-section" id="api-siyana">
           <div class="service-header">
-            <h2 style="margin:0;">Synapse API</h2>
+            <h2 style="margin:0;">Siyana API</h2>
             <span class="port-badge">:7070</span>
           </div>
-          <p style="color: var(--text-secondary);">The main gateway. All client requests go through Synapse.</p>
+          <p style="color: var(--text-secondary);">The main gateway. All client requests go through Siyana.</p>
 
           <h4>Stack Management</h4>
           <div class="endpoint-card">
@@ -705,7 +705,7 @@ pnpm demo</code></pre>
             <tr><th>Service</th><th>Port</th><th>Protocol</th><th>Notes</th></tr>
           </thead>
           <tbody>
-            <tr><td>Synapse API</td><td><code>7070</code></td><td>HTTP + WS</td><td>Main gateway</td></tr>
+            <tr><td>Siyana API</td><td><code>7070</code></td><td>HTTP + WS</td><td>Main gateway</td></tr>
             <tr><td>Needlecast Router</td><td><code>7071</code></td><td>HTTP</td><td>Internal</td></tr>
             <tr><td>Thalamus Router</td><td><code>7072</code></td><td>HTTP</td><td>Internal</td></tr>
             <tr><td>DHF Compositor</td><td><code>7073</code></td><td>HTTP</td><td>Internal</td></tr>
@@ -794,7 +794,7 @@ pnpm compose:up     # rebuild from scratch</code></pre>
 pnpm compose:logs
 
 # Single service
-docker compose logs -f synapse-api
+docker compose logs -f siyana-api
 
 # Last 50 lines of a service
 docker compose logs --tail 50 thalamus-router</code></pre>

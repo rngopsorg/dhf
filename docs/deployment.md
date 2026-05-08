@@ -15,7 +15,7 @@ Default ports:
 
 | Service | Port |
 |---|---|
-| synapse-api | 7070 |
+| siyana-api | 7070 |
 | needlecast-router-svc | 7071 |
 | thalamus-router | 7072 |
 | dhf-compositor | 7073 |

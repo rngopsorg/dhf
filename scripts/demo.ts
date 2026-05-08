@@ -1,7 +1,7 @@
 // End-to-end demo: spin a stack, two sleeves (human + ai), perceive, recall, needlecast.
 // Run after `docker compose up -d` and `pnpm contracts:deploy`.
 // Usage: pnpm demo
-const SYN = process.env.SYNAPSE_URL ?? 'http://localhost:7070';
+const SYN = process.env.SIYANA_URL ?? 'http://localhost:7070';
 
 async function j<T = any>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(SYN + path, {

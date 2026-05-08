@@ -28,7 +28,7 @@ export async function createService(cfg: ServiceConfig): Promise<FastifyInstance
     bodyLimit: 8 * 1024 * 1024,
   });
   if (cfg.cors !== false) {
-    await app.register(cors, { origin: process.env.SYNAPSE_CORS_ORIGIN ?? '*' });
+    await app.register(cors, { origin: process.env.SIYANA_CORS_ORIGIN ?? '*' });
   }
   app.get('/healthz', async () => ({ ok: true, name: cfg.name, ts: Date.now() }));
   app.get('/readyz', async () => ({ ready: true, name: cfg.name, ts: Date.now() }));

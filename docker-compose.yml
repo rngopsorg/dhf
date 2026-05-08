@@ -203,9 +203,9 @@ services:
 
   # ─────────────────────── CORE ORCHESTRATION ────────────────────────────────
 
-  synapse-api:
+  siyana-api:
     <<: *ts-base
-    command: ["node", "services/synapse-api/dist/server.js"]
+    command: ["node", "services/siyana-api/dist/server.js"]
     depends_on:
       cortical-registry-db: { condition: service_healthy }
       working-memory-cache: { condition: service_healthy }

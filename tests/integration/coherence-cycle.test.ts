@@ -2,7 +2,7 @@
 // Requires: `docker compose up -d` then `pnpm contracts:deploy`.
 import { describe, it, expect, beforeAll } from 'vitest';
 
-const SYN = process.env.SYNAPSE_URL ?? 'http://localhost:7070';
+const SYN = process.env.SIYANA_URL ?? 'http://localhost:7070';
 
 async function j(path: string, init?: RequestInit) {
   const r = await fetch(SYN + path, {

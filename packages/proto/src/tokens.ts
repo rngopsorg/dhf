@@ -8,7 +8,7 @@ export const TokenKind = z.enum([
   'compute',  // execution bandwidth (cortex-evm, sleeve-runtime-ai, dhf-compositor)
   'memory',   // reconstruction depth (hippocampus-dag, memory-reconciler, needlecast-router)
   'sync',     // temporal coherence  (medulla-pow, epoch-anchor, thalamus-router)
-  'routing',  // information visibility (axonal-bus, hippocampus-dag, synapse-api)
+  'routing',  // information visibility (axonal-bus, hippocampus-dag, siyana-api)
   'residue',  // coordination repair  (residue-collector, thalamus-router, memory-reconciler)
 ]);
 export type TokenKind = z.infer<typeof TokenKind>;

@@ -18,7 +18,7 @@ A **Stack** is the unique cryptographic identity that points at a coordinated tu
 ## 2. Process Topology
 
 ```
-                 ┌─── synapse-api (REST/WS/GraphQL) ───┐
+                 ┌─── siyana-api (REST/WS/GraphQL) ───┐
    Operator ─── │     ↑                                │
                  └────┬─────────────┬──────────────────┘
                       │             │

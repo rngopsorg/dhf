@@ -27,7 +27,7 @@ services:
       replicas: 3
       placement: { constraints: [node.labels.role==data] }
 
-  synapse-api:
+  siyana-api:
     deploy:
       replicas: 3
       update_config: { parallelism: 1, delay: 10s, order: start-first }

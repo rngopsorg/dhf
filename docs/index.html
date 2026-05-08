@@ -261,7 +261,7 @@
         <div class="arch-layer">
           <span class="arch-layer-label">L3</span>
           <div class="arch-layer-content">
-            <h4>Synapse API — Gateway Layer</h4>
+            <h4>Siyana API — Gateway Layer</h4>
             <p>REST + WebSocket gateway for all client interactions. Stack creation, perceive, recall, needlecast, and sleeve management.</p>
           </div>
         </div>
@@ -583,27 +583,27 @@
             <h3>For Agent Developers</h3>
             <p style="color: var(--text-secondary); margin-top: 1rem;">Build AI agents that remember across sessions, transfer between inference backends, and coordinate with other agents — all with cryptographic guarantees.</p>
             <pre style="margin-top: 1rem;"><code>// Create a persistent AI agent
-const stack = await synapse.post('/v1/stacks', {
+const stack = await siyana.post('/v1/stacks', {
   pubkey: myKeypair.pub,
   cpv: { compute: 1.5, memory: 0.8, 
          sync: 1.0, routing: 0.5, residue: 1.2 }
 });
 
 // Spawn an AI sleeve
-const sleeve = await synapse.post(
+const sleeve = await siyana.post(
   `/v1/sleeves/${stack.id}`,
   { kind: 'ai', tickRate: 2000 }
 );
 
 // Perceive (write to memory)
-await synapse.post('/v1/perceive', {
+await siyana.post('/v1/perceive', {
   stackId: stack.id,
   text: 'Inference output: market trend analysis...',
   sleeveId: sleeve.id
 });
 
 // Recall (read from memory, depth-bounded)
-const memory = await synapse.post('/v1/recall', {
+const memory = await siyana.post('/v1/recall', {
   stackId: stack.id,
   depth: 16  // costs 16 MemoryToken
 });
@@ -671,7 +671,7 @@ const memory = await synapse.post('/v1/recall', {
         <div class="roadmap-item active">
           <div class="roadmap-phase">Phase 2 — Coherence // Q2 2026</div>
           <h3>Service Integration & Testing</h3>
-          <p>Full service implementation (Synapse API, Thalamus Router, DHF Compositor, Needlecast, Treasury, Faucet), worker pipeline, integration tests, contract test suites, Go unit tests, and end-to-end coherence loop validation.</p>
+          <p>Full service implementation (Siyana API, Thalamus Router, DHF Compositor, Needlecast, Treasury, Faucet), worker pipeline, integration tests, contract test suites, Go unit tests, and end-to-end coherence loop validation.</p>
           <div class="roadmap-tags">
             <span class="roadmap-tag">Integration</span>
             <span class="roadmap-tag">Testing</span>

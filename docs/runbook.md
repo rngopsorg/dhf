@@ -9,7 +9,7 @@ docker compose up -d contracts-deployer       # one-shot
 docker compose up -d                          # everything else
 ```
 
-Wait for `synapse-api/healthz` to return 200 before issuing requests.
+Wait for `siyana-api/healthz` to return 200 before issuing requests.
 
 ## Smoke Test
 

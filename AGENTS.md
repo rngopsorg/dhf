@@ -30,7 +30,7 @@
 - ✅ `packages/db` — Prisma schema + `getDb()` singleton
 - ✅ `packages/chain` — viem cortex chain + `HippocampusClient` + `MedullaClient`
 - ✅ `packages/service-base` — Fastify bootstrap helpers
-- ✅ `services/synapse-api` — full REST + WS server (has type errors)
+- ✅ `services/siyana-api` — full REST + WS server (has type errors)
 - ✅ `services/thalamus-router` — epoch tick + coherence folding (has type errors)
 - ✅ `services/dhf-compositor` — DAG walk + decrypt (has type errors)
 - ✅ `services/needlecast-router-svc` — saga (has type errors)
@@ -94,8 +94,8 @@ The services write to Prisma models using fields that don't exist in the schema.
 |---|---|---|
 | `thalamus-router`: `coherenceRoot({ evm: evmRoot, btc: ..., ipfs: ..., sleeves: ... })` where `evmRoot` is `Uint8Array` | `coherenceRoot(parts: { evm: string, btc: string, ipfs: string, sleeves: string })` — takes hex **strings** | Caller must convert `Uint8Array → hex` before passing |
 | `thalamus-router`: `merkleRoot(evmHashes.map(h => Buffer.from(h, 'hex')))` | `merkleRoot(leaves: Array<Uint8Array \| string>): string` | ✅ Works (accepts Uint8Array) |
-| `synapse-api`: `genIdentityKeypair()` | Returns `{ pub: string, priv: string }` (hex) | ✅ Works |
-| `synapse-api`: `encrypt(body.text, k)` where k = `epochKey(...)` returns `Uint8Array` | `encrypt(plaintext: string, key: Uint8Array): EncPayload` | ✅ Works |
+| `siyana-api`: `genIdentityKeypair()` | Returns `{ pub: string, priv: string }` (hex) | ✅ Works |
+| `siyana-api`: `encrypt(body.text, k)` where k = `epochKey(...)` returns `Uint8Array` | `encrypt(plaintext: string, key: Uint8Array): EncPayload` | ✅ Works |
 
 **Action:** Fix `thalamus-router` to hex-encode before passing to `coherenceRoot`. See [Phase 2 fixes](#phase-2--fix-services--workers).
 
@@ -123,7 +123,7 @@ Layer 2 (depends on crypto + bus + proto):
   packages/service-base (proto + bus)
 
 Layer 3 (depends on all packages):
-  services/synapse-api
+  services/siyana-api
   services/thalamus-router
   services/dhf-compositor
   services/needlecast-router-svc
@@ -319,7 +319,7 @@ const cross = coherenceRoot({ evm: evmRootHex, btc: bytesToHex(new Uint8Array(32
 
 ---
 
-### P2-B: Fix `services/synapse-api/src/server.ts`
+### P2-B: Fix `services/siyana-api/src/server.ts`
 
 **Issues:**
 1. `import { type EmbodimentType } from '@ecca/proto'` — unused, can remove.
@@ -363,7 +363,7 @@ Likely works as-is after P1-A. Minimal dependencies.
 
 ### P2-G: Fix `services/sleeve-runtime/src/server.ts`
 
-1. Uses `fetch()` to call synapse-api — no internal package deps beyond `@ecca/service-base` and `@ecca/bus`.
+1. Uses `fetch()` to call siyana-api — no internal package deps beyond `@ecca/service-base` and `@ecca/bus`.
 2. `getBus()` is called but not used (only `bus` in shutdown). Either remove or keep for event publishing.
 
 ---
@@ -384,7 +384,7 @@ Likely works as-is after P1-A. Minimal dependencies.
 ```
 After Phase 1 completes:
   ┌── P2-A (thalamus)     ─┐
-  ├── P2-B (synapse-api)   │
+  ├── P2-B (siyana-api)   │
   ├── P2-C (compositor)    │
   ├── P2-D (needlecast)    ├── ALL PARALLEL
   ├── P2-E (treasury)      │
@@ -508,7 +508,7 @@ docker compose up -d
 docker compose ps
 curl http://localhost:8332/health      # medulla-pow
 curl http://localhost:5001/health      # hippocampus-dag
-curl http://localhost:7070/healthz     # synapse-api
+curl http://localhost:7070/healthz     # siyana-api
 ```
 
 ---
@@ -570,7 +570,7 @@ Create `tests/load/` with k6 scripts:
 
 Implement `compat-runner/src/run.ts` that:
 1. Reads v2 test vectors from `../ecca-stack/` (the v2 simulation)
-2. Replays each against synapse-api
+2. Replays each against siyana-api
 3. Validates structural equivalence
 
 ### P6-E: CI pipeline

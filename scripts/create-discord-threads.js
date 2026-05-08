@@ -35,7 +35,7 @@ const THREADS = {
   ],
   // services
   '1502037552574631966': [
-    { name: 'Synapse API', message: 'REST + WebSocket API: stack creation, perceive, recall, needlecast endpoints.' },
+    { name: 'Siyana API', message: 'REST + WebSocket API: stack creation, perceive, recall, needlecast endpoints.' },
     { name: 'Thalamus Router', message: 'Epoch tick, coherence folding, cross-chain anchor generation.' },
     { name: 'DHF Compositor', message: 'DAG walk, decryption, distributed holographic fragment reassembly.' },
     { name: 'Needlecast Router Service', message: 'Off-chain saga orchestration for memory transfers.' },

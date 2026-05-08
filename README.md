@@ -122,7 +122,7 @@ Every component is **dual-coded** — named for both its neurological analog and
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  synapse-api  (REST + WebSocket gateway)                            │
+│  siyana-api  (REST + WebSocket gateway)                            │
 ├─────────────────────────────────────────────────────────────────────┤
 │  thalamus-router · dhf-compositor · needlecast-router-svc           │
 │  quellist-treasury-svc · bandwidth-faucet                           │
@@ -193,7 +193,7 @@ The cerebral cortex — identity, contracts, and token logic on a standard EVM.
 
 ## Services
 
-### synapse-api
+### siyana-api
 
 The **synapse** — API gateway exposing REST and WebSocket interfaces. Handles stack CRUD, sleeve management, `perceive`, `recall`, `remember`, and token queries. WebSocket at `/ws` fans out all bus events as JSON lines.
 
@@ -382,7 +382,7 @@ Open http://localhost:3030 (Grafana) for the **Coherence Overview** dashboard.
 1. Infrastructure: Postgres, Redis, NATS, MinIO
 2. Chains: medulla-pow, hippocampus-dag, cortex-evm
 3. Contract deployment: contracts-deployer
-4. Services: synapse-api, thalamus-router, dhf-compositor, etc.
+4. Services: siyana-api, thalamus-router, dhf-compositor, etc.
 5. Workers: drift-checker, epoch-anchor, residue-collector, etc.
 
 ---
@@ -399,7 +399,7 @@ dhf/
 │  ├─ chain/                  #   viem clients (HippocampusClient, MedullaClient)
 │  └─ service-base/           #   Fastify bootstrap helpers
 ├─ services/
-│  ├─ synapse-api/            #   REST + WS gateway
+│  ├─ siyana-api/            #   REST + WS gateway
 │  ├─ thalamus-router/        #   Epoch tick + coherence folding
 │  ├─ dhf-compositor/         #   DAG walk + decrypt + fidelity scoring
 │  ├─ needlecast-router-svc/  #   6-step re-sleeving saga
@@ -430,7 +430,7 @@ dhf/
 
 | Service | Port | Health |
 |---------|------|--------|
-| synapse-api | 7070 | `/healthz` |
+| siyana-api | 7070 | `/healthz` |
 | needlecast-router-svc | 7071 | `/healthz` |
 | thalamus-router | 7072 | `/healthz` |
 | dhf-compositor | 7073 | `/healthz` |
