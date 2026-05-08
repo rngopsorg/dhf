@@ -101,6 +101,12 @@
             <li><a href="#glossary">Glossary</a></li>
           </ul>
         </div>
+        <div class="docs-sidebar-section">
+          <h4>FAQ</h4>
+          <ul>
+            <li><a href="#faq-three-chains">Why Three Blockchains?</a></li>
+          </ul>
+        </div>
       </aside>
 
       <!-- Main Content -->
@@ -614,6 +620,151 @@ curl http://localhost:5001/health     # hippocampus-dag</code></pre>
             <tr><td><strong>Quellist</strong></td><td>The treasury. Named after the political faction in Altered Carbon.</td></tr>
           </tbody>
         </table>
+
+        <hr class="neon-divider">
+
+        <!-- FAQ -->
+        <h2 id="faq-three-chains">FAQ: Why Three Blockchains?</h2>
+
+        <div class="callout callout-info">
+          <strong>TL;DR:</strong> The same reason your brain has a brainstem, a hippocampus, and a cortex — each handles a fundamentally different class of computation, and no single structure should be able to hold the others hostage.
+        </div>
+
+        <h3>The Neuroscience Mapping</h3>
+        <p>ECCA's three-chain architecture isn't arbitrary. It directly mirrors how biological nervous systems partition cognitive workloads across anatomically separate structures with distinct failure modes, clock rates, and data representations:</p>
+
+        <table>
+          <thead>
+            <tr><th>Brain Structure</th><th>ECCA Chain</th><th>Role</th><th>Data Type</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Medulla Oblongata</strong><br><em>(brainstem)</em></td>
+              <td><strong>Medulla PoW</strong><br>Custom Go PoW</td>
+              <td>Autonomic rhythm — heartbeat, breathing, arousal. Operates without conscious awareness. In ECCA: the global clock. Every ~4 seconds it mines a block that binds all chain states into a coherence root.</td>
+              <td>Timing commitments, Merkle roots, epoch counter, synaptic field MMR</td>
+            </tr>
+            <tr>
+              <td><strong>Hippocampus</strong><br><em>(medial temporal lobe)</em></td>
+              <td><strong>Hippocampus DAG</strong><br>Content-addressed Merkle-DAG</td>
+              <td>Episodic memory formation and retrieval. In the brain, the hippocampus doesn't store memories permanently — it indexes and reconstructs them from distributed cortical traces. In ECCA: encrypted DAG nodes gated by epoch keys, with fidelity decay over time.</td>
+              <td>Encrypted ciphertext, DAG links, epoch tags, CIDs</td>
+            </tr>
+            <tr>
+              <td><strong>Cerebral Cortex</strong><br><em>(neocortex)</em></td>
+              <td><strong>Cortex EVM</strong><br>Clique PoA (geth)</td>
+              <td>Executive control, identity, contracts, economic logic. The cortex is where "you" live — decisions, ownership, rules. In ECCA: NFT-bound identities (StackIdentity), token balances, registries, treasury emission.</td>
+              <td>Solidity state, NFTs, token balances, governance</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>This isn't metaphor for aesthetics — it's a <strong>functional decomposition</strong>. The brainstem doesn't need to understand language. The hippocampus doesn't need to mine blocks. The cortex doesn't store raw sensory data. Mixing these concerns into one chain would be like asking your cerebellum to write poetry.</p>
+
+        <h3>Miner Isolation: No Chain Holds Another Hostage</h3>
+        <p>In a single-chain architecture, the entity that controls block production controls <em>everything</em> — identity, memory, timing, economic policy. ECCA's three chains enforce <strong>sovereign failure domains</strong>:</p>
+
+        <table>
+          <thead>
+            <tr><th>Attack Surface</th><th>Single Chain</th><th>ECCA Three-Chain</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Miner censorship</td>
+              <td>Miner can censor identity creation, memory storage, AND timing in one action</td>
+              <td>A Medulla miner can withhold epochs but cannot touch memories or identities. A Cortex validator can delay identity mints but cannot stop the clock or corrupt memory.</td>
+            </tr>
+            <tr>
+              <td>State bloat attack</td>
+              <td>Flooding memory data bloats block size for everyone</td>
+              <td>Memory lives on Hippocampus (DAG, not blockchain). Cortex and Medulla stay lean. Hippocampus scales horizontally via content-addressing.</td>
+            </tr>
+            <tr>
+              <td>Consensus capture</td>
+              <td>51% attack compromises all system guarantees</td>
+              <td>Capturing Medulla PoW gives you clock manipulation — but without Cortex keys you can't forge identities, and without Hippocampus access you can't read memories. An attacker must compromise <em>three independent consensus mechanisms simultaneously</em>.</td>
+            </tr>
+            <tr>
+              <td>Fork coercion</td>
+              <td>One contentious fork splits everything</td>
+              <td>Chains can be independently upgraded. Medulla can hard-fork its difficulty algorithm without touching smart contracts. Cortex can upgrade its EVM without disrupting the clock.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>The <strong>coherence root</strong> is the binding mechanism — every 4 seconds, Thalamus computes a cross-chain Merkle root <code>H(evmRoot ‖ ipfsRoot ‖ sleevesRoot)</code> and embeds it in the Medulla block header. This means all three chains are <em>cryptographically bound</em> without being <em>operationally coupled</em>.</p>
+
+        <h3>Homomorphic-Encryption-Like Properties</h3>
+        <p>While ECCA doesn't use homomorphic encryption (FHE) directly, the three-chain separation provides <strong>analogous privacy guarantees through architectural isolation</strong>:</p>
+
+        <div class="callout callout-info">
+          <strong>Key insight:</strong> No single chain ever sees the full picture. Each chain operates on a different <em>representation</em> of the same agent state — and these representations are cryptographically incompatible without cross-chain key material.
+        </div>
+
+        <ul style="line-height: 1.8;">
+          <li><strong>Medulla</strong> sees only <em>hashes</em> — coherence roots, block hashes, epoch counters. It knows <em>when</em> things happened but not <em>what</em> happened. It is structurally blind to content.</li>
+          <li><strong>Hippocampus</strong> sees only <em>encrypted ciphertext</em> — AES-256-GCM blobs tagged with epoch numbers. It stores memories but cannot read them. Decryption requires epoch keys derived from <code>HKDF-SHA512(stackId, epoch)</code>, which only the Stack owner possesses.</li>
+          <li><strong>Cortex</strong> sees only <em>public state</em> — token balances, NFT ownership, registry entries. It knows <em>who</em> owns what identity and how many tokens they have, but cannot access their memories or predict the next epoch hash.</li>
+        </ul>
+
+        <p>This creates a system where:</p>
+        <ul style="line-height: 1.8;">
+          <li>A Hippocampus node operator stores your memories but <strong>cannot decrypt them</strong> (encryption at rest with epoch-rotated keys)</li>
+          <li>A Medulla miner commits to a coherence root but <strong>cannot determine what it commits to</strong> (pre-image resistance of SHA-256)</li>
+          <li>A Cortex validator processes your token transactions but <strong>cannot link them to specific memory content</strong> (no ciphertext on-chain)</li>
+          <li>Verifying that all three chains are consistent requires only the 32-byte coherence root — <strong>no chain needs to read another chain's state</strong></li>
+        </ul>
+
+        <p>This is why the architecture provides <em>privacy-by-construction</em> rather than privacy-by-encryption. Even if one chain is fully compromised and all its data is public, the attacker gains no useful information about the other two chains without the corresponding key material.</p>
+
+        <h3>Separation of Concerns: Different Chains, Different Trade-offs</h3>
+        <p>Each chain makes fundamentally different engineering trade-offs that would be impossible to optimize simultaneously in a single consensus mechanism:</p>
+
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th>Medulla</th><th>Hippocampus</th><th>Cortex</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Consensus</td>
+              <td>PoW (Nakamoto)</td>
+              <td>Content-addressing (no consensus needed)</td>
+              <td>PoA (Clique)</td>
+            </tr>
+            <tr>
+              <td>Block time</td>
+              <td>~4s (tuned for coherence cycles)</td>
+              <td>N/A (instant DAG writes)</td>
+              <td>~4s (Clique default)</td>
+            </tr>
+            <tr>
+              <td>State model</td>
+              <td>UTXO-like (append-only headers)</td>
+              <td>Merkle-DAG (content-addressed nodes)</td>
+              <td>Account-based (EVM world state)</td>
+            </tr>
+            <tr>
+              <td>Scaling strategy</td>
+              <td>Difficulty retarget</td>
+              <td>Horizontal replication + Kademlia DHT</td>
+              <td>Vertical (faster validators)</td>
+            </tr>
+            <tr>
+              <td>Data visibility</td>
+              <td>Public (hashes only)</td>
+              <td>Encrypted at rest</td>
+              <td>Public (identities &amp; tokens)</td>
+            </tr>
+            <tr>
+              <td>Failure mode</td>
+              <td>Clock stall → epoch freeze</td>
+              <td>Data loss → fidelity decay</td>
+              <td>Validator offline → contract stall</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>A single chain would have to compromise on all of these dimensions. With three chains, each can be independently optimized, upgraded, and hardened without side effects on the others.</p>
 
       </main>
     </div>
