@@ -35,6 +35,11 @@ GITHUB_POLL_INTERVAL = 60  # seconds
 ANNOUNCEMENTS_CHANNEL = "announcements"
 PR_CHANNEL = "pull-requests"
 DEV_CHANNEL = "dev-general"
+TEST_RESULTS_CHANNEL = "dev-general"
+
+# GitHub Pages URL for test report
+PAGES_BASE_URL = f"https://aarong11.github.io/dhf"
+E2E_REPORT_URL = f"{PAGES_BASE_URL}/e2e-report.html"
 
 SYSTEM_PROMPT = """You are **ECCA Bot**, the official assistant for the ECCA Stack project.
 
@@ -366,6 +371,51 @@ class GitHubPoller:
                             f"{emoji} **Issue {action}** by **{actor}**\n"
                             f"> [{issue['title']}]({issue['html_url']}) `#{issue['number']}`"
                         )
+                        await channel.send(msg)
+
+            elif etype == "WorkflowRunEvent":
+                payload = event["payload"]
+                action = payload.get("action", "")
+                workflow_run = payload.get("workflow_run", {})
+                workflow_name = workflow_run.get("name", "")
+
+                # Only post when E2E tests complete
+                if action == "completed" and "E2E" in workflow_name:
+                    channel = find_channel_by_name(guild, TEST_RESULTS_CHANNEL)
+                    if channel:
+                        conclusion = workflow_run.get("conclusion", "unknown")
+                        run_url = workflow_run.get("html_url", f"https://github.com/{GITHUB_REPO}/actions")
+                        branch = workflow_run.get("head_branch", "main")
+                        run_id = workflow_run.get("id", "")
+                        duration = ""
+                        if workflow_run.get("run_started_at") and workflow_run.get("updated_at"):
+                            duration = f" • Run #{run_id}"
+
+                        if conclusion == "success":
+                            msg = (
+                                f"✅ **E2E Tests Passed** on `{branch}`\n"
+                                f"> All assertions passed — full agent lifecycle verified\n"
+                                f"> 🔗 [**View Cyberpunk Test Report**]({E2E_REPORT_URL})\n"
+                                f"> 📋 [GitHub Actions Run]({run_url}){duration}\n"
+                                f"\n"
+                                f"```\n"
+                                f"Identity → Embodiment → Economy → Memory → Recall\n"
+                                f"→ Coherence → Transfer → Blockchain → Cleanup ✓\n"
+                                f"```"
+                            )
+                        elif conclusion == "failure":
+                            msg = (
+                                f"❌ **E2E Tests Failed** on `{branch}`\n"
+                                f"> Coherence breach detected — check report for details\n"
+                                f"> 🔗 [**View Test Report**]({E2E_REPORT_URL})\n"
+                                f"> 📋 [GitHub Actions Run]({run_url}){duration}"
+                            )
+                        else:
+                            msg = (
+                                f"⚠️ **E2E Tests {conclusion}** on `{branch}`\n"
+                                f"> 📋 [GitHub Actions Run]({run_url})"
+                            )
+
                         await channel.send(msg)
 
 
