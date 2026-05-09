@@ -190,6 +190,35 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 2026-05-09 — Playfair K8s Test Infrastructure -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <div class="changelog-entry infra">
+      <div class="changelog-date">2026-05-09 <span class="changelog-hash">a3b33b6</span></div>
+      <div class="changelog-title">Playfair — 3-Region Tripartite Game Test Infrastructure</div>
+      <div>
+        <span class="changelog-tag tag-infra">Infra</span>
+        <span class="changelog-tag tag-test">Tests</span>
+        <span class="changelog-tag tag-feature">Feature</span>
+      </div>
+      <div class="changelog-body">
+        <p>Complete Kubernetes-based test harness that runs 6 agents across 3 regions with asymmetric resource profiles, proving the variable-bitrate thesis from the dev blog in actual multi-node infrastructure.</p>
+        <ul>
+          <li><strong>3-region K8s cluster</strong> — k3d with labeled agent nodes: <code>region-storage</code> (cheap storage, throttled compute), <code>region-compute</code> (cheap compute, throttled storage), <code>region-bandwidth</code> (cheap bandwidth, both others throttled). Each region deploys its own medulla-pow, hippocampus-dag, and cortex-evm with tuned resource limits and <code>ECCA_DIFFICULTY</code> settings</li>
+          <li><strong>Shared infrastructure</strong> — Postgres 16, Redis 7, NATS 2.10 (JetStream), MinIO in a shared namespace; all regions reference via cross-namespace DNS</li>
+          <li><strong>6 specialized agents</strong> — Archivist-Alpha/Beta (memory/human sleeves in storage), Inference-Prime/Echo (AI sleeves in compute), Router-Nexus/Sentinel (mining/memory sleeves in bandwidth). Each has unique CPV coefficients, tick rates, and behavioral profiles</li>
+          <li><strong>9 scripted scenario events</strong> — spot-preemption at epoch 5, respawn in different region at epoch 8, needlecast back at epoch 15, drift-spike/sync-recovery at epochs 20/25, shard-loss residue injection at epoch 30, cross-region needlecast at epoch 35, epoch-surge stress test at epoch 40, return migration at epoch 45</li>
+          <li><strong>Orchestrator</strong> — <code>orchestrator.js</code>: Node.js game engine running 50 epochs with per-agent perceive/store/route/sync actions at variable rates, fairness auditing every epoch, token usage tracking (compute/storage/bandwidth), and full results JSON output</li>
+          <li><strong>Report generator</strong> — <code>generate-playfair-report.js</code> produces <a href="playfair-report.html">playfair-report.html</a> in the cyberpunk neon theme with region comparison cards, agent stat cards with token usage/drift/CPV, ASCII epoch timeline sparklines, needlecast flow log, scenario event timeline, and fairness verdict banner</li>
+          <li><strong>Master runner</strong> — 9-phase <code>run.sh</code> (cluster → build → shared infra → regions → contracts → services → game → results → cleanup) with <code>--skip-cluster</code>, <code>--skip-build</code>, <code>--epochs N</code> flags</li>
+          <li><strong>Docker images</strong> — <code>Dockerfile.orchestrator</code> (node:20-alpine), <code>Dockerfile.service</code> (generic TS service with <code>SERVICE</code> build arg)</li>
+          <li><strong>Contract deployer</strong> — K8s Job that waits for cortex-evm RPC availability, then runs <code>npx hardhat run scripts/deploy.ts --network cortex</code></li>
+        </ul>
+        <p>Run: <code>pnpm test:playfair</code> or <code>./tests/playfair/run.sh --epochs 20</code></p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- 2026-05-09 -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
 

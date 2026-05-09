@@ -267,6 +267,7 @@
     <li><a href="#same-code">Guaranteeing the Same Code Tests the Same Things</a></li>
     <li><a href="#gap">The Gap: Where We Are vs. Where We Need To Be</a></li>
     <li><a href="#roadmap">What It Takes to Get There</a></li>
+    <li><a href="#playfair">Addendum: Playfair — The 3-Region Test Harness</a></li>
   </ol>
 </div>
 
@@ -800,6 +801,65 @@ function auditEpoch(bytes32 gameId, uint256 epoch) external;</code></pre>
   The core abstractions — epochs, coherence roots, sleeves, needlecasting, TripartiteGame, token economy, residue system — are all implemented and tested. The gap is primarily <strong>networking</strong> (chain peering), <strong>cloud integration</strong> (spot lifecycle), and <strong>orchestration</strong> (benchmark harness + Helm). Roughly 6–8 weeks of focused work to go from "works on localhost" to "multi-region benchmarking on spot compute."
 </div>
 
+<p><strong>Update (9 May 2026):</strong> The orchestration gap described above has been partially closed. See the next section.</p>
+
+<hr class="section-divider">
+
+<h2 id="playfair">Addendum: Playfair — The 3-Region Test Harness</h2>
+
+<p>The day after publishing the analysis above, we built <strong>Playfair</strong> — a complete Kubernetes test harness that implements the variable-bitrate thesis in actual multi-node infrastructure. It's named after the Playfair cipher, because the whole point is that <em>fairness is verifiable after the fact, not enforced during execution</em>.</p>
+
+<h3>What Playfair Actually Does</h3>
+
+<p>Playfair provisions a <strong>k3d cluster with 3 labeled agent nodes</strong>, each simulating a region with a different cost profile:</p>
+
+<ul>
+  <li><strong>region-storage</strong> — cheap storage, expensive compute. Hippocampus gets generous resources (500m/1Gi → 1000m/2Gi). Medulla is throttled with <code>ECCA_DIFFICULTY=6</code>, making PoW mining slow and expensive. Natural home for archivists and memory-keepers.</li>
+  <li><strong>region-compute</strong> — cheap compute, expensive storage. Medulla gets generous resources (1000m/512Mi → 2000m/1Gi) with <code>ECCA_DIFFICULTY=3</code>, making mining fast. Hippocampus is throttled. Natural home for inference agents.</li>
+  <li><strong>region-bandwidth</strong> — cheap bandwidth, both others expensive. Cortex gets generous resources for fast EVM tx throughput. Both Medulla and Hippocampus are throttled. Natural home for routing and needlecasting.</li>
+</ul>
+
+<p>Each region deploys its own full set of three chains plus siyana-api and thalamus-router instances pointing at the local chains, with shared Postgres, Redis, NATS, and MinIO in a fourth namespace.</p>
+
+<h3>The 6 Agents</h3>
+
+<p>Playfair deploys 6 agents — 2 per region — with specialized behavioral profiles:</p>
+
+<ul>
+  <li><strong>Archivist-Alpha</strong> (storage, memory sleeve) — pins shards, reconciles, keeps fidelity high. CPV: [0.4, 1.8, 1.0, 0.6, 1.2]. Perceives 30% of ticks, stores 80%.</li>
+  <li><strong>Archivist-Beta</strong> (storage, human sleeve) — slow narrative agent, detailed memories, rarely moves. Perceives 60%, stores 50%. 8-second ticks (half the speed of other agents).</li>
+  <li><strong>Inference-Prime</strong> (compute, AI sleeve) — fast inference, burns through compute budget. Perceives 90%, stores only 20% (storage is expensive here). 2-second ticks.</li>
+  <li><strong>Inference-Echo</strong> (compute, AI sleeve) — frequently needlecasts to storage region when memory budget runs low. 15% route rate.</li>
+  <li><strong>Router-Nexus</strong> (bandwidth, mining sleeve) — routing specialist, exploits cheap bandwidth. 40% route rate, 20% perceive. CPV: [0.3, 0.3, 1.5, 1.8, 0.1].</li>
+  <li><strong>Router-Sentinel</strong> (bandwidth, memory sleeve) — watches for residues, routes corrections, earns ResidueToken bounties.</li>
+</ul>
+
+<h3>The 9 Scenario Events</h3>
+
+<p>This is where it gets interesting. At scripted epochs, the orchestrator triggers events that force the system to demonstrate its resilience properties:</p>
+
+<ol>
+  <li><strong>Epoch 5: Spot preemption</strong> — Inference-Prime's sleeve is decommissioned (simulating a spot instance termination). Its drift accumulates while it's down.</li>
+  <li><strong>Epoch 8: Cross-region respawn</strong> — Inference-Prime re-sleeves in the storage region (expensive compute, but at least it's running).</li>
+  <li><strong>Epoch 15: Needlecast home</strong> — Spot instance available again in compute. Inference-Prime needlecasts back with its accumulated shards.</li>
+  <li><strong>Epoch 20: Drift spike</strong> — Archivist-Beta goes idle for 5 epochs. Drift accumulates to dangerous levels.</li>
+  <li><strong>Epoch 25: Sync recovery</strong> — Archivist-Beta returns, burns SyncToken to recover and reset drift.</li>
+  <li><strong>Epoch 30: Shard loss</strong> — A shard-loss residue is injected in the bandwidth region. First responder earns a bounty.</li>
+  <li><strong>Epoch 35: Strategic migration</strong> — Inference-Echo needlecasts to bandwidth region for cheaper routing during a high-traffic phase.</li>
+  <li><strong>Epoch 40: Epoch surge</strong> — All agents perceive at maximum rate for 5 epochs — stress test of the fairness auditing system.</li>
+  <li><strong>Epoch 45: Return migration</strong> — Inference-Echo needlecasts back to compute as the surge subsides.</li>
+</ol>
+
+<p>Every epoch, the orchestrator runs a fairness audit. Every needlecast is costed (<code>5 + 0.1×shards + 0.5×drift</code>). Every token burn is tracked. At the end, it outputs a comprehensive JSON with per-agent-per-epoch metrics, which the report generator renders into a <a href="playfair-report.html">cyberpunk HTML report</a>.</p>
+
+<h3>What This Proves</h3>
+
+<p>Playfair isn't a simulation. It runs actual chain nodes, actual K8s resource limits, actual cross-namespace networking. When region-compute's Medulla mines a block at difficulty 3, it <em>actually</em> mines faster than region-storage's Medulla at difficulty 6. When Inference-Prime needlecasts from compute to storage, its shard data <em>actually</em> moves across K8s services.</p>
+
+<p>The thesis from this blog post — that you can test agents fairly across heterogeneous hardware without synchronous execution — is now testable with one command:</p>
+
+<pre><code>pnpm test:playfair --epochs 20</code></pre>
+
 <hr class="section-divider">
 
 <h2>Conclusion</h2>
@@ -811,7 +871,7 @@ function auditEpoch(bytes32 gameId, uint256 epoch) external;</code></pre>
 <p>The world isn't synchronized. It's <em>coherent</em>. That's the difference.</p>
 
 <blockquote>
-  <p>All test results are available in the <a href="unit-test-report.html">unit test report</a> (275 tests across 6 suites) and the <a href="e2e-report.html">E2E report</a> (full coherence cycle). The contracts, including <code>TripartiteGame</code> and <code>EpochAnchor</code>, have <a href="unit-test-report.html#suite-06">135 Solidity tests</a> covering all verification primitives. Source: <a href="https://github.com/aarong11/dhf">github.com/aarong11/dhf</a>.</p>
+  <p>All test results are available in the <a href="unit-test-report.html">unit test report</a> (275 tests across 6 suites), the <a href="e2e-report.html">E2E report</a> (full coherence cycle), and the <a href="playfair-report.html">Playfair report</a> (3-region tripartite game). The contracts, including <code>TripartiteGame</code> and <code>EpochAnchor</code>, have <a href="unit-test-report.html#suite-06">135 Solidity tests</a> covering all verification primitives. Source: <a href="https://github.com/aarong11/dhf">github.com/aarong11/dhf</a>.</p>
 </blockquote>
 
 </div>
