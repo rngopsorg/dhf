@@ -548,6 +548,13 @@ async function main() {
       agentCount: AGENTS.length,
       regionCount: Object.keys(REGIONS).length,
     },
+    env: {
+      cluster:         process.env.PLAYFAIR_CLUSTER || 'playfair',
+      latencyProfile:  process.env.PLAYFAIR_LATENCY_PROFILE || 'storage↔compute 33±5ms · compute↔bandwidth 42±8ms · storage↔bandwidth 75±12ms',
+      commit:          process.env.GIT_COMMIT || process.env.GITHUB_SHA || 'local',
+      runner:          process.env.PLAYFAIR_RUNNER || (process.env.GITHUB_ACTIONS ? 'github-actions' : 'local'),
+      branch:          process.env.GITHUB_REF_NAME || process.env.GIT_BRANCH || 'unknown',
+    },
     regions: Object.fromEntries(
       Object.entries(REGIONS).map(([key, r]) => [key, {
         name: r.name,

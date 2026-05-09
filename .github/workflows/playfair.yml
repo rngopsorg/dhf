@@ -1,0 +1,231 @@
+name: Playfair Tripartite Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: "Number of game epochs"
+        required: false
+        default: "50"
+      skip_latency:
+        description: "Skip tc netem injection (faster, less realistic)"
+        required: false
+        default: "false"
+      latency_storage_compute_ms:
+        description: "One-way latency storage↔compute (ms)"
+        required: false
+        default: "33"
+  schedule:
+    # Nightly at 03:00 UTC
+    - cron: "0 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "tests/playfair/**"
+      - "services/**"
+      - "packages/**"
+      - "contracts/**"
+      - "forks/**"
+      - "Dockerfile.builder"
+      - ".github/workflows/playfair.yml"
+
+permissions:
+  contents: write   # needed to commit the rendered report back on main
+
+concurrency:
+  group: playfair-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  playfair:
+    name: Run Playfair tripartite game
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: "!contains(github.event.head_commit.message, '[skip playfair]')"
+
+    env:
+      EPOCHS: ${{ github.event.inputs.epochs || '50' }}
+      SKIP_LATENCY: ${{ github.event.inputs.skip_latency || 'false' }}
+      LATENCY_SC_MS: ${{ github.event.inputs.latency_storage_compute_ms || '33' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: playfair-buildx-${{ runner.os }}-${{ hashFiles('Dockerfile.builder', 'pnpm-lock.yaml', 'forks/*/go.mod') }}
+          restore-keys: |
+            playfair-buildx-${{ runner.os }}-
+
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.8.3 bash
+          k3d version
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.0
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.7"
+          terraform_wrapper: false
+
+      - name: Setup Node + pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "9.7.0"
+          run_install: false
+
+      - name: Show toolchain
+        run: |
+          docker version --format '{{.Server.Version}}'
+          k3d version
+          terraform version | head -1
+          kubectl version --client=true --output=json | jq -r .clientVersion.gitVersion
+          node --version
+          pnpm --version
+
+      # ─── Build images locally (no registry) ─────────────────────────
+      - name: Build ts-builder image
+        run: |
+          docker build -f Dockerfile.builder --target ts-builder -t ecca-ts-builder:local .
+
+      - name: Build chain images
+        run: |
+          for chain in medulla-pow hippocampus-dag cortex-evm; do
+            (cd "forks/${chain}-go" && docker build -t "ecca-${chain}:local" .) || \
+              (cd "forks/${chain}-go" && docker build -f Dockerfile.distributed -t "ecca-${chain}:local" .)
+          done
+
+      - name: Build service + worker + orchestrator images
+        run: |
+          for svc in siyana-api thalamus-router dhf-compositor needlecast-router-svc \
+                     quellist-treasury-svc bandwidth-faucet sleeve-runtime worker; do
+            docker build -f tests/playfair/Dockerfile.service \
+              --build-arg SERVICE="${svc}" \
+              -t "ecca-${svc}:local" .
+          done
+          docker build -f tests/playfair/Dockerfile.orchestrator \
+            -t ecca-playfair-orchestrator:local tests/playfair/
+
+      # ─── Apply Terraform (creates k3d cluster, imports images, runs game) ──
+      - name: Terraform init
+        working-directory: tests/playfair/terraform
+        run: terraform init -no-color
+
+      - name: Terraform apply
+        working-directory: tests/playfair/terraform
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+          GIT_BRANCH: ${{ github.ref_name }}
+          PLAYFAIR_RUNNER: github-actions/${{ runner.os }}
+        run: |
+          terraform apply -auto-approve -no-color \
+            -var "skip_images=true" \
+            -var "epochs=${EPOCHS}" \
+            -var "skip_latency=${SKIP_LATENCY}" \
+            -var "latency_storage_compute_ms=${LATENCY_SC_MS}"
+
+      - name: Collect cluster diagnostics on failure
+        if: failure()
+        run: |
+          echo "=== Pods (all namespaces) ==="
+          kubectl get pods -A -o wide || true
+          echo ""
+          echo "=== Events (last 50) ==="
+          kubectl get events -A --sort-by=.lastTimestamp | tail -50 || true
+          for ns in ecca-shared region-storage region-compute region-bandwidth; do
+            echo ""
+            echo "=== Pod descriptions / logs in ${ns} ==="
+            for pod in $(kubectl -n "$ns" get pods -o name 2>/dev/null); do
+              echo "--- ${ns}/${pod} ---"
+              kubectl -n "$ns" describe "$pod" | tail -30 || true
+              kubectl -n "$ns" logs "$pod" --tail=80 --all-containers=true 2>/dev/null || true
+            done
+          done
+
+      # ─── Publish report ─────────────────────────────────────────────
+      - name: Copy report into docs/
+        if: always()
+        run: |
+          mkdir -p docs
+          if [ -s tests/playfair/playfair-report.html ]; then
+            cp tests/playfair/playfair-report.html docs/playfair-report.html
+            echo "report_present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "WARN: no report generated"
+          fi
+
+      - name: Upload report + raw results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playfair-report-${{ github.run_number }}
+          path: |
+            tests/playfair/playfair-report.html
+            tests/playfair/results/playfair-results.json
+            tests/playfair/results/orchestrator.log
+            tests/playfair/results/region-*.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit report to docs/ (main only, success only)
+        if: github.ref == 'refs/heads/main' && success()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/playfair-report.html docs/playfair.html || true
+          if git diff --cached --quiet; then
+            echo "No report changes to commit"
+          else
+            git commit -m "ci(playfair): update report from run #${{ github.run_number }} [skip ci]"
+            git push
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Playfair Run ${{ github.run_number }}"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Epochs | ${EPOCHS} |"
+            echo "| Skip latency | ${SKIP_LATENCY} |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Runner | ${{ runner.os }} |"
+            echo ""
+            if [ -s tests/playfair/results/playfair-results.json ]; then
+              echo "### Summary"
+              echo ""
+              jq -r '
+                .summary as $s |
+                "- Total perceptions: \($s.totalPerceptions // 0)\n" +
+                "- Total stores: \($s.totalStores // 0)\n" +
+                "- Total routes: \($s.totalRoutes // 0)\n" +
+                "- Region migrations: \($s.regionMigrations // 0)\n" +
+                "- Residues: \($s.totalResidues // 0) (\($s.residuesResolved // 0) resolved)\n" +
+                "- Verdict: **\(if ($s.allEpochsFair // false) then \"FAIR ✓\" else \"UNFAIR ✗\" end)**\n" +
+                (if (($s.unfairEpochs // []) | length) > 0 then "- Unfair epochs: \($s.unfairEpochs | join(\", \"))\n" else \"\" end)
+              ' tests/playfair/results/playfair-results.json || echo "(could not summarise)"
+            fi
+            echo ""
+            echo "📊 [Open the full HTML report](https://quellcrist-falconer.github.io/ECCA/playfair-report.html)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tear down cluster
+        if: always()
+        working-directory: tests/playfair/terraform
+        run: terraform destroy -auto-approve -no-color || true

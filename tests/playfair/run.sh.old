@@ -1,0 +1,442 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════════
+#  PLAYFAIR — Tripartite Game Test on 3-Region Kubernetes
+# ═══════════════════════════════════════════════════════════════════════
+#
+#  Sets up a k3d cluster with 3 "regions":
+#    region-storage   — cheap storage (large hippocampus, throttled compute)
+#    region-compute   — cheap compute (GPU-class, throttled storage)
+#    region-bandwidth — cheap bandwidth (fast networking, throttled both)
+#
+#  Simulates real cross-region network latency via tc netem:
+#    storage  ↔ compute:   33ms ± 5ms  (US-West-2 ↔ US-East-1)
+#    compute  ↔ bandwidth: 42ms ± 8ms  (US-East-1 ↔ EU-West-1)
+#    storage  ↔ bandwidth: 75ms ± 12ms (US-West-2 ↔ EU-West-1)
+#
+#  Deploys the ECCA stack across all three, runs a TripartiteGame with
+#  6 agents (2 per region), needlecasts between regions, and produces
+#  a full audit report.
+#
+#  Prerequisites:
+#    - Docker
+#    - kubectl
+#    - k3d (https://k3d.io — `brew install k3d` or `curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash`)
+#    - helm
+#    - Node.js >= 20
+#
+#  Usage:
+#    ./tests/playfair/run.sh [--skip-cluster] [--skip-build] [--skip-latency] [--epochs N]
+# ═══════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CLUSTER_NAME="playfair"
+EPOCHS="${EPOCHS:-50}"
+SKIP_CLUSTER=false
+SKIP_BUILD=false
+SKIP_LATENCY=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --skip-cluster) SKIP_CLUSTER=true ;;
+    --skip-build)   SKIP_BUILD=true ;;
+    --skip-latency) SKIP_LATENCY=true ;;
+    --epochs)       shift; EPOCHS="${2:-50}" ;;
+    --epochs=*)     EPOCHS="${arg#*=}" ;;
+  esac
+done
+
+# ─── Colors ───────────────────────────────────────────────────────────
+C_CYAN='\033[0;36m'
+C_GREEN='\033[0;32m'
+C_MAGENTA='\033[0;35m'
+C_YELLOW='\033[0;33m'
+C_RED='\033[0;31m'
+C_RESET='\033[0m'
+
+log()  { echo -e "${C_CYAN}[playfair]${C_RESET} $*"; }
+ok()   { echo -e "${C_GREEN}  ✓${C_RESET} $*"; }
+warn() { echo -e "${C_YELLOW}  ⚠${C_RESET} $*"; }
+fail() { echo -e "${C_RED}  ✗${C_RESET} $*"; exit 1; }
+
+# ─── Dependency check ─────────────────────────────────────────────────
+log "Checking prerequisites..."
+for cmd in docker kubectl k3d helm node; do
+  command -v "$cmd" &>/dev/null || fail "$cmd not found — install it first"
+done
+ok "All prerequisites available"
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 1 — Cluster Setup
+# ═══════════════════════════════════════════════════════════════════════
+
+if [ "$SKIP_CLUSTER" = false ]; then
+  log "Creating k3d cluster '${CLUSTER_NAME}' with 3 region nodes..."
+
+  # Clean up any existing cluster
+  k3d cluster delete "$CLUSTER_NAME" 2>/dev/null || true
+
+  # Create cluster: 1 server + 3 agents (one per region)
+  # Port mappings: shifted host ports to avoid conflicts with local services
+  #   Host 27070-27072 → NodePort 30070-30072 (siyana-api per region)
+  #   Host 28332-28334 → NodePort 30332-30334 (medulla-pow)
+  #   Host 25001-25003 → NodePort 30501-30503 (hippocampus-dag)
+  #   Host 28545-28547 → NodePort 30545-30547 (cortex-evm)
+  k3d cluster create "$CLUSTER_NAME" \
+    --servers 1 \
+    --agents 3 \
+    --port "27070-27072:30070-30072@server:0" \
+    --port "28332-28334:30332-30334@server:0" \
+    --port "25001-25003:30501-30503@server:0" \
+    --port "28545-28547:30545-30547@server:0" \
+    --k3s-arg "--disable=traefik@server:0" \
+    --wait
+
+  ok "Cluster created"
+
+  # Label the agent nodes as regions
+  AGENTS=$(kubectl get nodes -l 'node-role.kubernetes.io/master!=' -o name 2>/dev/null || \
+           kubectl get nodes --selector='!node-role.kubernetes.io/control-plane' -o name)
+  AGENT_ARRAY=($AGENTS)
+
+  if [ ${#AGENT_ARRAY[@]} -lt 3 ]; then
+    # If we can't get 3 agent nodes, label the ones we have
+    warn "Only ${#AGENT_ARRAY[@]} agent nodes found, labeling what we have"
+  fi
+
+  REGIONS=("region-storage" "region-compute" "region-bandwidth")
+  for i in "${!AGENT_ARRAY[@]}"; do
+    if [ "$i" -lt 3 ]; then
+      kubectl label node "${AGENT_ARRAY[$i]##*/}" \
+        ecca.io/region="${REGIONS[$i]}" \
+        --overwrite
+      ok "Labeled ${AGENT_ARRAY[$i]##*/} → ${REGIONS[$i]}"
+    fi
+  done
+
+  # Create namespaces for each region
+  for region in "${REGIONS[@]}"; do
+    kubectl create namespace "$region" --dry-run=client -o yaml | kubectl apply -f -
+    # Set resource quotas to simulate cost profiles
+  done
+  ok "Namespaces created"
+else
+  log "Skipping cluster creation (--skip-cluster)"
+fi
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 1.5 — Network Latency Simulation
+# ═══════════════════════════════════════════════════════════════════════
+#
+#  Injects realistic cross-region latency using tc netem inside k3d
+#  Docker containers. Each k3d agent node is a Docker container with
+#  an eth0 interface on the k3d bridge network. Cross-node pod traffic
+#  (via flannel VXLAN) traverses eth0, so netem on eth0 affects all
+#  cross-region pod-to-pod communication.
+#
+#  Simulated latencies (one-way, based on real AWS inter-region):
+#    storage  ↔ compute:   33ms ± 5ms  (US-West-2 ↔ US-East-1)
+#    compute  ↔ bandwidth: 42ms ± 8ms  (US-East-1 ↔ EU-West-1)
+#    storage  ↔ bandwidth: 75ms ± 12ms (US-West-2 ↔ EU-West-1)
+#
+# ═══════════════════════════════════════════════════════════════════════
+
+if [ "$SKIP_LATENCY" = false ]; then
+  log "Configuring cross-region network latency simulation..."
+
+  K3D_NET="k3d-${CLUSTER_NAME}"
+  CONTAINER_STORAGE="k3d-${CLUSTER_NAME}-agent-0"
+  CONTAINER_COMPUTE="k3d-${CLUSTER_NAME}-agent-1"
+  CONTAINER_BANDWIDTH="k3d-${CLUSTER_NAME}-agent-2"
+
+  # Get container IPs on the k3d Docker network
+  get_container_ip() {
+    docker inspect -f "{{(index .NetworkSettings.Networks \"${K3D_NET}\").IPAddress}}" "$1" 2>/dev/null
+  }
+
+  IP_STORAGE=$(get_container_ip "$CONTAINER_STORAGE")
+  IP_COMPUTE=$(get_container_ip "$CONTAINER_COMPUTE")
+  IP_BANDWIDTH=$(get_container_ip "$CONTAINER_BANDWIDTH")
+
+  if [ -z "$IP_STORAGE" ] || [ -z "$IP_COMPUTE" ] || [ -z "$IP_BANDWIDTH" ]; then
+    warn "Could not resolve all k3d node IPs — skipping latency simulation"
+    warn "  storage=$IP_STORAGE compute=$IP_COMPUTE bandwidth=$IP_BANDWIDTH"
+  else
+    log "  Node IPs: storage=${IP_STORAGE} compute=${IP_COMPUTE} bandwidth=${IP_BANDWIDTH}"
+
+    # Install tc (iproute2) into k3d containers.
+    # k3d uses a minimal k3s image with no package manager. We extract tc + libs
+    # from an Alpine container (via host) and inject into each k3d node.
+    TC_CONTAINER="playfair-tc-extract"
+    docker rm -f "$TC_CONTAINER" >/dev/null 2>&1 || true
+    # Run synchronously to ensure apk install completes, then keep alive for copies
+    docker run -d --name "$TC_CONTAINER" alpine:3.20 sh -c \
+      "apk add --no-cache -q iproute2-tc && sleep 300" >/dev/null 2>&1
+    # Wait for apk install to finish (tc binary appears at /sbin/tc)
+    for _i in $(seq 1 30); do
+      docker exec "$TC_CONTAINER" test -f /sbin/tc 2>/dev/null && break
+      sleep 1
+    done
+
+    TC_TMP=$(mktemp -d)
+    docker cp "${TC_CONTAINER}:/sbin/tc" "${TC_TMP}/tc" 2>/dev/null || true
+    docker cp "${TC_CONTAINER}:/lib/ld-musl-aarch64.so.1" "${TC_TMP}/ld-musl-aarch64.so.1" 2>/dev/null || true
+    for lib in libmnl.so.0 libxtables.so.12 libelf.so.1 libcap.so.2 libzstd.so.1; do
+      REAL=$(docker exec "$TC_CONTAINER" readlink -f "/usr/lib/${lib}" 2>/dev/null) || true
+      [ -n "$REAL" ] && docker cp "${TC_CONTAINER}:${REAL}" "${TC_TMP}/${lib}" 2>/dev/null || true
+    done
+    REAL_Z=$(docker exec "$TC_CONTAINER" readlink -f "/lib/libz.so.1" 2>/dev/null) || true
+    [ -n "$REAL_Z" ] && docker cp "${TC_CONTAINER}:${REAL_Z}" "${TC_TMP}/libz.so.1" 2>/dev/null || true
+    docker rm -f "$TC_CONTAINER" >/dev/null 2>&1 || true
+
+    # Copy from host temp dir → each k3d node container
+    for container in "$CONTAINER_STORAGE" "$CONTAINER_COMPUTE" "$CONTAINER_BANDWIDTH"; do
+      docker cp "${TC_TMP}/ld-musl-aarch64.so.1" "${container}:/lib/ld-musl-aarch64.so.1" 2>/dev/null || true
+      docker cp "${TC_TMP}/tc" "${container}:/bin/tc" 2>/dev/null || true
+      for lib in libmnl.so.0 libxtables.so.12 libelf.so.1 libcap.so.2 libzstd.so.1 libz.so.1; do
+        [ -f "${TC_TMP}/${lib}" ] && docker cp "${TC_TMP}/${lib}" "${container}:/lib/${lib}" 2>/dev/null || true
+      done
+    done
+    rm -rf "${TC_TMP}"
+
+    # Verify tc is available
+    if ! docker exec "$CONTAINER_STORAGE" tc qdisc show >/dev/null 2>&1; then
+      warn "tc still not available after install — skipping latency simulation"
+    else
+      ok "tc available in all nodes"
+
+      # setup_latency CONTAINER DEST1_IP DELAY1 JITTER1 DEST2_IP DELAY2 JITTER2
+      setup_latency() {
+        local container="$1"
+        local dest1_ip="$2" delay1="$3" jitter1="$4"
+        local dest2_ip="$5" delay2="$6" jitter2="$7"
+
+        docker exec "$container" sh -c "
+          tc qdisc del dev eth0 root 2>/dev/null || true
+          tc qdisc add dev eth0 root handle 1: prio bands 3
+          tc qdisc add dev eth0 parent 1:2 handle 20: netem delay ${delay1}ms ${jitter1}ms
+          tc qdisc add dev eth0 parent 1:3 handle 30: netem delay ${delay2}ms ${jitter2}ms
+          tc filter add dev eth0 parent 1:0 protocol ip prio 1 u32 match ip dst ${dest1_ip}/32 flowid 1:2
+          tc filter add dev eth0 parent 1:0 protocol ip prio 2 u32 match ip dst ${dest2_ip}/32 flowid 1:3
+        "
+      }
+
+      # storage → compute: 33ms ± 5ms,  storage → bandwidth: 75ms ± 12ms
+      setup_latency "$CONTAINER_STORAGE" "$IP_COMPUTE" 33 5 "$IP_BANDWIDTH" 75 12
+      ok "storage: 33ms → compute, 75ms → bandwidth"
+
+      # compute → storage: 33ms ± 5ms,  compute → bandwidth: 42ms ± 8ms
+      setup_latency "$CONTAINER_COMPUTE" "$IP_STORAGE" 33 5 "$IP_BANDWIDTH" 42 8
+      ok "compute: 33ms → storage, 42ms → bandwidth"
+
+      # bandwidth → storage: 75ms ± 12ms, bandwidth → compute: 42ms ± 8ms
+      setup_latency "$CONTAINER_BANDWIDTH" "$IP_STORAGE" 75 12 "$IP_COMPUTE" 42 8
+      ok "bandwidth: 75ms → storage, 42ms → compute"
+
+      # Verify with ping
+      log "  Verifying latency (3-packet ping)..."
+      PING_SC=$(docker exec "$CONTAINER_STORAGE" ping -c 3 -q "$IP_COMPUTE" 2>&1 | awk -F'/' '/avg/{print $5}' || echo "?")
+      PING_SB=$(docker exec "$CONTAINER_STORAGE" ping -c 3 -q "$IP_BANDWIDTH" 2>&1 | awk -F'/' '/avg/{print $5}' || echo "?")
+      PING_CB=$(docker exec "$CONTAINER_COMPUTE" ping -c 3 -q "$IP_BANDWIDTH" 2>&1 | awk -F'/' '/avg/{print $5}' || echo "?")
+      log "    storage → compute:   ${PING_SC}ms (target: 33ms)"
+      log "    storage → bandwidth: ${PING_SB}ms (target: 75ms)"
+      log "    compute → bandwidth: ${PING_CB}ms (target: 42ms)"
+      ok "Network latency simulation active"
+    fi
+  fi
+else
+  log "Skipping latency simulation (--skip-latency)"
+fi
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 2 — Build & Load Images
+# ═══════════════════════════════════════════════════════════════════════
+
+if [ "$SKIP_BUILD" = false ]; then
+  log "Building Docker images..."
+  cd "$ROOT_DIR"
+
+  # Build Go chain forks
+  docker build -t ecca-medulla-pow:local -f forks/medulla-pow-go/Dockerfile forks/medulla-pow-go/
+  ok "medulla-pow built"
+
+  docker build -t ecca-hippocampus-dag:local -f forks/hippocampus-dag-go/Dockerfile forks/hippocampus-dag-go/
+  ok "hippocampus-dag built"
+
+  docker build -t ecca-cortex-evm:local -f forks/cortex-evm-go/Dockerfile forks/cortex-evm-go/
+  ok "cortex-evm built"
+
+  # Build TS services via the builder Dockerfile
+  docker build -t ecca-builder:local -f Dockerfile.builder .
+  ok "TS builder completed"
+
+  # Build the ts-builder stage separately for service images to reference
+  docker build -t ecca-ts-builder:local --target ts-builder -f Dockerfile.builder .
+  ok "TS builder stage exported"
+
+  # Build individual service images (using the monorepo dist)
+  for svc in siyana-api thalamus-router dhf-compositor needlecast-router-svc quellist-treasury-svc bandwidth-faucet sleeve-runtime; do
+    docker build -t "ecca-${svc}:local" \
+      --build-arg SERVICE="$svc" \
+      -f "$SCRIPT_DIR/Dockerfile.service" "$ROOT_DIR"
+    ok "  ${svc} image built"
+  done
+
+  # Build worker image
+  docker build -t ecca-worker:local \
+    --build-arg SERVICE="runner" \
+    -f "$SCRIPT_DIR/Dockerfile.service" "$ROOT_DIR"
+  ok "worker image built"
+
+  # Build orchestrator image
+  docker build -t ecca-playfair-orchestrator:local \
+    -f "$SCRIPT_DIR/Dockerfile.orchestrator" "$SCRIPT_DIR"
+  ok "orchestrator image built"
+
+  # Load all images into k3d
+  log "Loading images into k3d cluster..."
+  for img in ecca-medulla-pow ecca-hippocampus-dag ecca-cortex-evm \
+             ecca-builder ecca-ts-builder \
+             ecca-siyana-api ecca-thalamus-router ecca-dhf-compositor \
+             ecca-needlecast-router-svc ecca-quellist-treasury-svc \
+             ecca-bandwidth-faucet ecca-sleeve-runtime ecca-worker \
+             ecca-playfair-orchestrator; do
+    k3d image import "${img}:local" -c "$CLUSTER_NAME"
+  done
+  ok "All images loaded"
+else
+  log "Skipping build (--skip-build)"
+fi
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 3 — Deploy Shared Infrastructure
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Deploying shared infrastructure..."
+kubectl apply -f "$SCRIPT_DIR/k8s/00-shared-infra.yaml"
+ok "Postgres, Redis, NATS, MinIO deployed"
+
+log "Waiting for shared infra to be ready..."
+kubectl -n ecca-shared wait --for=condition=ready pod -l app=postgres --timeout=120s
+kubectl -n ecca-shared wait --for=condition=ready pod -l app=redis --timeout=60s
+kubectl -n ecca-shared wait --for=condition=ready pod -l app=nats --timeout=60s
+ok "Shared infra ready"
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 4 — Deploy Chains & Services Per Region
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Deploying three regions..."
+
+for region in region-storage region-compute region-bandwidth; do
+  log "  Deploying ${region}..."
+  kubectl apply -f "$SCRIPT_DIR/k8s/01-${region}.yaml"
+  ok "  ${region} manifests applied"
+done
+
+log "Waiting for chains to come up..."
+for region in region-storage region-compute region-bandwidth; do
+  kubectl -n "$region" wait --for=condition=ready pod -l app=medulla-pow --timeout=120s 2>/dev/null || warn "medulla-pow in $region not ready yet"
+  kubectl -n "$region" wait --for=condition=ready pod -l app=hippocampus-dag --timeout=120s 2>/dev/null || warn "hippocampus-dag in $region not ready yet"
+  kubectl -n "$region" wait --for=condition=ready pod -l app=cortex-evm --timeout=120s 2>/dev/null || warn "cortex-evm in $region not ready yet"
+done
+ok "All chains running"
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 5 — Deploy Contracts
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Deploying contracts to cortex-evm in region-compute..."
+kubectl -n region-compute apply -f "$SCRIPT_DIR/k8s/02-contracts-deployer.yaml"
+kubectl -n region-compute wait --for=condition=complete job/contracts-deployer --timeout=180s
+ok "Contracts deployed"
+
+# Extract contract addresses from the deployer job logs
+DEPLOY_LOG=$(kubectl -n region-compute logs job/contracts-deployer 2>/dev/null | tail -20)
+log "Contract addresses:"
+echo "$DEPLOY_LOG" | grep -E "deployed|address" || true
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 6 — Deploy Services & Sleeves Per Region
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Deploying services and sleeves..."
+kubectl apply -f "$SCRIPT_DIR/k8s/03-services.yaml"
+
+for region in region-storage region-compute region-bandwidth; do
+  kubectl -n "$region" wait --for=condition=ready pod -l app=siyana-api --timeout=120s 2>/dev/null || warn "siyana-api in $region still starting"
+  kubectl -n "$region" wait --for=condition=ready pod -l app=thalamus-router --timeout=120s 2>/dev/null || warn "thalamus in $region still starting"
+done
+ok "Services ready"
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 7 — Run the Tripartite Game
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Launching Playfair orchestrator (${EPOCHS} epochs)..."
+kubectl apply -f "$SCRIPT_DIR/k8s/04-orchestrator.yaml"
+
+# Wait for the orchestrator to complete
+log "Waiting for game to complete (this takes ~$((EPOCHS * 4))s)..."
+kubectl -n ecca-shared wait --for=condition=complete \
+  job/playfair-orchestrator --timeout=$((EPOCHS * 10 + 120))s || {
+  warn "Orchestrator didn't complete in expected time"
+  kubectl -n ecca-shared logs job/playfair-orchestrator --tail=50
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 8 — Collect Results
+# ═══════════════════════════════════════════════════════════════════════
+
+log "Collecting results..."
+RESULTS_DIR="$ROOT_DIR/tests/playfair/results"
+mkdir -p "$RESULTS_DIR"
+
+# Get orchestrator output
+kubectl -n ecca-shared logs job/playfair-orchestrator > "$RESULTS_DIR/orchestrator.log" 2>/dev/null
+
+# Copy the results JSON from the orchestrator pod
+ORCH_POD=$(kubectl -n ecca-shared get pods -l job-name=playfair-orchestrator -o name | head -1)
+kubectl -n ecca-shared cp "${ORCH_POD#pod/}:/results/playfair-results.json" "$RESULTS_DIR/playfair-results.json" 2>/dev/null || {
+  warn "Could not copy results JSON — extracting from logs"
+  kubectl -n ecca-shared logs job/playfair-orchestrator | grep '^{' | tail -1 > "$RESULTS_DIR/playfair-results.json" 2>/dev/null || true
+}
+
+# Collect per-region metrics
+for region in region-storage region-compute region-bandwidth; do
+  kubectl -n "$region" logs -l app=thalamus-router --tail=200 > "$RESULTS_DIR/${region}-thalamus.log" 2>/dev/null || true
+  kubectl -n "$region" logs -l app=siyana-api --tail=200 > "$RESULTS_DIR/${region}-siyana.log" 2>/dev/null || true
+done
+
+ok "Results collected in $RESULTS_DIR"
+
+# Generate HTML report
+log "Generating Playfair report..."
+cd "$ROOT_DIR"
+node "$SCRIPT_DIR/generate-playfair-report.js" \
+  "$RESULTS_DIR/playfair-results.json" \
+  "$ROOT_DIR/tests/playfair/playfair-report.html" \
+  "$ROOT_DIR/docs/playfair-report.html"
+ok "Report generated"
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PHASE 9 — Cleanup (optional)
+# ═══════════════════════════════════════════════════════════════════════
+
+echo ""
+log "═══════════════════════════════════════════════════════════════"
+log "  PLAYFAIR TEST COMPLETE"
+log "═══════════════════════════════════════════════════════════════"
+echo ""
+log "Results:    $RESULTS_DIR/playfair-results.json"
+log "Report:     tests/playfair/playfair-report.html"
+log "Docs copy:  docs/playfair-report.html"
+if [ "$SKIP_LATENCY" = false ]; then
+log "Latency:    storage↔compute 33ms, compute↔bandwidth 42ms, storage↔bandwidth 75ms"
+fi
+echo ""
+log "To tear down:"
+log "  k3d cluster delete $CLUSTER_NAME"
+echo ""

@@ -123,7 +123,7 @@ spec:
       containers:
         - name: nats
           image: nats:2.10-alpine
-          args: ["--jetstream", "--store_dir=/data"]
+          args: ["--jetstream", "--store_dir=/data", "-m", "8222"]
           ports:
             - containerPort: 4222
               name: client

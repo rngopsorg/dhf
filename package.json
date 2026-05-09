@@ -24,7 +24,11 @@
     "contracts:deploy": "pnpm --filter @ecca/contracts run deploy:local",
     "demo": "pnpm --filter @ecca/tests run demo:e2e",
     "compat": "pnpm --filter @ecca/compat-runner run replay",
-    "test:playfair": "bash tests/playfair/run.sh"
+    "test:playfair": "bash tests/playfair/run.sh",
+    "test:playfair:plan": "bash tests/playfair/run.sh --plan",
+    "test:playfair:destroy": "bash tests/playfair/run.sh --destroy",
+    "test:playfair:aws": "bash tests/playfair/aws/run-aws.sh",
+    "test:playfair:aws:teardown": "bash tests/playfair/aws/teardown.sh"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",

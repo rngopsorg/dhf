@@ -190,6 +190,39 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 2026-05-09 — Playfair → Terraform + CI + Polished Report -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <div class="changelog-entry infra">
+      <div class="changelog-date">2026-05-09 <span class="changelog-hash">618eac8</span></div>
+      <div class="changelog-title">Playfair — Reproducible from-scratch run via Terraform, CI workflow, polished HTML report</div>
+      <div>
+        <span class="changelog-tag tag-infra">Infra</span>
+        <span class="changelog-tag tag-test">Tests</span>
+        <span class="changelog-tag tag-fix">Fix</span>
+      </div>
+      <div class="changelog-body">
+        <p>Re-architected the Playfair test for full reproducibility. The 9-phase bash script is now a thin wrapper around a Terraform module that declares every state transition (cluster, image builds, image imports, latency injection, manifests, orchestrator, results) as a tracked resource with content-hashed triggers.</p>
+        <ul>
+          <li><strong>Terraform module</strong> — <code>tests/playfair/terraform/</code> manages 25 resources via <code>null_resource</code> + <code>local-exec</code>. Idempotent re-runs only re-execute the resources whose source-tree SHA-256 changed; <code>terraform destroy</code> tears down the entire cluster + tc netem state cleanly.</li>
+          <li><strong>GitHub Actions workflow</strong> — <a href="https://github.com/quellcrist-falconer/ECCA/blob/main/.github/workflows/playfair.yml"><code>.github/workflows/playfair.yml</code></a>: nightly @ 03:00&nbsp;UTC, on push to <code>main</code>, and <code>workflow_dispatch</code> with epoch + latency overrides. Builds all images on the runner, applies Terraform against a local k3d cluster, uploads the report as an artifact, and (on <code>main</code>) commits the rendered HTML back so it's published via Pages.</li>
+          <li><strong>Documentation page</strong> — new <a href="playfair.html">/playfair.html</a> with full <em>what / why / when / produces / represents / means / how conditions vary</em> walkthrough, plus tuning + debugging table.</li>
+          <li><strong>Polished report</strong> — <code>generate-playfair-report.js</code> rewritten with inline SVG charts (stacked area timeline of perceives/stores/routes/syncs, per-agent activity sparklines, per-region token-usage bars), a "runtime config" panel with commit/runner/branch metadata, and an embedded "how to read" explainer.</li>
+          <li><strong>Bug fixes baked in</strong>: (1) Prisma engine resolution failure on Alpine arm64 — <code>PRISMA_QUERY_ENGINE_LIBRARY</code> hard-pinned in <code>03-services.yaml</code>; (2) <code>thalamus-router</code> crash from sharing one NATS JetStream consumer across 3 regions — consumer names now scoped by <code>ECCA_REGION</code>; (3) <code>k3d image import</code> deadlock under concurrent Terraform workers — imports serialised in a single shell loop; (4) empty <code>playfair-results.json</code> when the orchestrator pod terminated before <code>kubectl cp</code> — fallback extracts JSON between the <code>═══ RESULTS JSON ═══</code> marker and the next banner so the trailing summary doesn't corrupt parsing; (5) Node 24 ESM/CJS clash — <code>tests/playfair/package.json</code> now declares <code>"type": "commonjs"</code> overriding the parent <code>tests/package.json</code> so the host-side report generator runs.</li>
+          <li><strong>Run modes</strong>: <code>./tests/playfair/run.sh</code> (full), <code>--skip-images</code> (reuse cached), <code>--epochs N</code>, <code>--skip-latency</code>, <code>--destroy</code>, <code>--plan</code>.</li>
+          <li><strong>Verified runs</strong> (against <code>618eac8</code> on macOS aarch64 / Docker Desktop / k3d v5.8.3):
+            <ul>
+              <li>Run A — <code>2026-05-09T13:36:25Z → 13:37:17Z</code> (orchestrator 56s, terraform apply ≈ 8 min from-scratch): 50 epochs, 6 agents, 3 regions, 152 perceptions / 43 stores / 31 routes, 1 residue (resolved), 31 cross-region migrations, 9 scripted scenarios, verdict <strong>FAIR</strong> on every epoch.</li>
+              <li>Run B — <code>2026-05-09T13:47:13Z → 13:48:05Z</code> (orchestrator 51.7s, full re-run with rebuilt orchestrator image): 50 epochs, 152 perceptions / 49 stores / 33 routes / 24 syncs, 1 residue (resolved), 33 migrations, verdict <strong>FAIR</strong> on every epoch (<code>unfairEpochs: []</code>).</li>
+              <li>Both runs produced a 60 KB self-contained HTML report (8 inline SVG charts) and a 113 KB results JSON; <code>terraform destroy -auto-approve</code> tore the cluster down cleanly between runs.</li>
+            </ul>
+          </li>
+        </ul>
+        <p>See the latest run at <a href="playfair-report.html">/playfair-report.html</a> and the docs at <a href="playfair.html">/playfair.html</a>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- 2026-05-09 — Playfair K8s Test Infrastructure -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
 

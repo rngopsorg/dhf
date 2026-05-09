@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playfair — Tripartite Game Test · ECCA</title>
+  <meta name="description" content="Playfair is the ECCA system-level integration test: 6 agents across 3 regions with simulated cross-region latency, run on a local k3d cluster via Terraform or in CI via GitHub Actions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <style>
+    .pf-content { max-width: 920px; margin: 4rem auto; padding: 0 1.4rem; color: var(--text, #c8c8d4); }
+    .pf-content h1 { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; letter-spacing: 0.2em; background: linear-gradient(135deg, #00f0ff, #ff00e6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 0.4rem; }
+    .pf-content .lede { color: var(--text-dim, #888); font-size: 1rem; margin-bottom: 2rem; }
+    .pf-content h2 { font-family: 'Orbitron', sans-serif; font-size: 1.05rem; letter-spacing: 0.15em; color: #00f0ff; margin: 2.4rem 0 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.4rem; }
+    .pf-content h3 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; letter-spacing: 0.1em; color: #ff00e6; margin: 1.6rem 0 0.4rem; }
+    .pf-content p { line-height: 1.7; margin-bottom: 0.9rem; }
+    .pf-content ul, .pf-content ol { margin: 0.4rem 0 1rem 1.4rem; line-height: 1.7; }
+    .pf-content code { font-family: 'JetBrains Mono', monospace; background: rgba(0,240,255,0.06); padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.88em; color: #00f0ff; }
+    .pf-content pre { background: #0a0a14; border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #00f0ff; border-radius: 6px; padding: 1rem 1.2rem; overflow-x: auto; margin: 1rem 0; font-size: 0.78rem; line-height: 1.55; }
+    .pf-content pre code { background: none; color: #c8c8d4; padding: 0; }
+    .pf-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+    .pf-content th, .pf-content td { padding: 0.55rem 0.8rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .pf-content th { color: #00f0ff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.7rem; }
+    .pf-content td code { font-size: 0.78em; }
+    .pf-content .callout { background: rgba(179,71,255,0.04); border: 1px solid rgba(179,71,255,0.25); border-left: 3px solid #b347ff; border-radius: 6px; padding: 1rem 1.2rem; margin: 1rem 0; font-size: 0.92rem; }
+    .pf-content .callout strong { color: #b347ff; }
+    .pf-content .pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 3px; margin-right: 0.3rem; }
+    .pf-content .pill.storage { background: rgba(0,255,136,0.12); color: #00ff88; }
+    .pf-content .pill.compute { background: rgba(0,240,255,0.12); color: #00f0ff; }
+    .pf-content .pill.bandwidth { background: rgba(255,0,230,0.12); color: #ff00e6; }
+    .pf-content a { color: #00f0ff; }
+    .pf-toc { background: #0a0a14; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; }
+    .pf-toc h3 { color: #00f0ff; margin-top: 0; }
+    .pf-toc ul { margin: 0.4rem 0 0 1rem; columns: 2; column-gap: 1.6rem; }
+    .pf-cta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1.4rem 0; }
+    .pf-cta a { background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.3); padding: 0.6rem 1.1rem; border-radius: 4px; text-decoration: none; color: #00f0ff; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .pf-cta a:hover { background: rgba(0,240,255,0.18); }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-gradient-top"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">◈</span>ECCA</a>
+    <ul class="nav-links">
+      <li><a href="https://discord.gg/GXBS3dUT" target="_blank">Discord</a></li>
+      <li><a href="paper.pdf" target="_blank">Paper</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="tokenomics.html">Tokens</a></li>
+      <li><a href="developer.html">Developers</a></li>
+      <li><a href="e2e-report.html">E2E Report</a></li>
+      <li><a href="playfair.html" class="active" style="color:#00f0ff">Playfair</a></li>
+      <li><a href="playfair-report.html">Latest Report</a></li>
+      <li><a href="changelog.html">Changelog</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="content-wrapper">
+<div class="pf-content">
+
+  <h1>PLAYFAIR</h1>
+  <p class="lede">A 50-epoch, 3-region, 6-agent tripartite-game test that exercises the entire ECCA stack — chains, services, contracts, and cross-region latency — on a single laptop or in CI.</p>
+
+  <div class="pf-cta">
+    <a href="playfair-report.html">→ Latest Report (Run B)</a>
+    <a href="#real-runs">→ Verified runs</a>
+    <a href="#anatomy">→ How to read the report</a>
+    <a href="https://github.com/quellcrist-falconer/ECCA/tree/main/tests/playfair">→ Source on GitHub</a>
+    <a href="https://github.com/quellcrist-falconer/ECCA/actions/workflows/playfair.yml">→ CI Runs</a>
+  </div>
+
+  <div class="pf-toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#what">What is Playfair?</a></li>
+      <li><a href="#why">Why does it exist?</a></li>
+      <li><a href="#when">When does it run?</a></li>
+      <li><a href="#produces">What it produces</a></li>
+      <li><a href="#represents">What it represents</a></li>
+      <li><a href="#means">What the result means</a></li>
+      <li><a href="#vary">How conditions vary</a></li>
+      <li><a href="#real-runs">Real test runs (verified)</a></li>
+      <li><a href="#anatomy">Anatomy of a report</a></li>
+      <li><a href="#run-local">Run it locally</a></li>
+      <li><a href="#run-ci">Run it in CI</a></li>
+      <li><a href="#tuning">Tuning &amp; debugging</a></li>
+    </ul>
+  </div>
+
+  <h2 id="what">What is Playfair?</h2>
+  <p>Playfair is ECCA's system-level integration test. It spins up a real <strong>k3d</strong> Kubernetes cluster
+  with one server node and three agent nodes — one per simulated region. Each region is given a different cost
+  profile, and a different per-agent budget for compute / storage / bandwidth tokens:</p>
+
+  <table>
+    <thead><tr><th>Region</th><th>Cheap</th><th>Expensive</th><th>Budget (C / S / B)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill storage">region-storage</span></td><td>storage</td><td>compute</td><td><code>200 / 1000 / 400</code></td></tr>
+      <tr><td><span class="pill compute">region-compute</span></td><td>compute</td><td>storage</td><td><code>1000 / 200 / 400</code></td></tr>
+      <tr><td><span class="pill bandwidth">region-bandwidth</span></td><td>bandwidth</td><td>compute &amp; storage</td><td><code>200 / 200 / 1000</code></td></tr>
+    </tbody>
+  </table>
+
+  <p>Six agents (two per region) each have a personality — perceive rate, store rate, route rate, sleeve kind,
+  and a Coherence Profile Vector — chosen to either match or fight their region's cost profile. A scripted
+  storyline of <em>spot preemptions, drift spikes, and residue injections</em> forces cross-region migrations
+  ("needlecasts") at fixed epochs.</p>
+
+  <p>After every epoch the orchestrator audits the TripartiteGame's allocation accounting and asserts that every
+  agent stayed within its per-region budget. The test passes only if <strong>all 50 epochs</strong> verify fair.</p>
+
+  <h2 id="why">Why does it exist?</h2>
+  <p>Unit tests catch regressions in individual contracts and packages. The compose-based <a href="e2e-report.html">E2E suite</a> catches regressions in the happy-path API surface. Playfair is different: it forces the system to operate <em>under realistic adversarial pressure</em>:</p>
+  <ul>
+    <li><strong>Cross-region latency is real.</strong> We use <code>tc netem</code> to inject 33–75&nbsp;ms one-way latency between agent nodes (matching the round-trip times of real cloud regions).</li>
+    <li><strong>Workload imbalance is real.</strong> Agents in the wrong region pay the penalty cost. They learn to needlecast.</li>
+    <li><strong>Failure events happen mid-test.</strong> Spot preemptions, drift spikes, and residue injections all fire on schedule.</li>
+    <li><strong>The full token economy is exercised.</strong> Every action burns the right token and is audited against the on-chain allocation.</li>
+  </ul>
+  <p>If a refactor accidentally breaks how the bus replicates across namespaces, how the EpochAnchor contract verifies continuity, or how the Prisma client resolves its native engine inside Alpine — Playfair fails before it merges.</p>
+
+  <h2 id="when">When does it run?</h2>
+  <ul>
+    <li><strong>Locally</strong>, on demand: <code>bash tests/playfair/run.sh</code>. Takes ~15 minutes from cold (image builds + apply) or ~5 minutes warm.</li>
+    <li><strong>In CI</strong>, on every push to <code>main</code> and on a nightly schedule (<code>03:00 UTC</code>) via the <a href="https://github.com/quellcrist-falconer/ECCA/actions/workflows/playfair.yml">Playfair workflow</a>. The CI run uploads the rendered HTML report as a build artifact and (on <code>main</code>) commits it back to <code>docs/playfair-report.html</code> so it's published to GitHub Pages.</li>
+    <li><strong>Manually</strong>, from the Actions tab via <em>workflow_dispatch</em>, with override inputs for <code>epochs</code> and the latency profile.</li>
+  </ul>
+
+  <h2 id="produces">What it produces</h2>
+  <p>Each run produces a deterministic set of artifacts under <code>tests/playfair/results/</code>:</p>
+  <ul>
+    <li><code>playfair-results.json</code> — the canonical machine-readable record of the run (agents, epochs, audits, needlecasts, residues, summary, env metadata).</li>
+    <li><code>playfair-report.html</code> — a self-contained, dependency-free HTML report with inline SVG charts. This is the file published to <a href="playfair-report.html">/playfair-report.html</a>.</li>
+    <li><code>orchestrator.log</code> — the full orchestrator stdout (one line per epoch tick).</li>
+    <li><code>region-{storage,compute,bandwidth}-{siyana,thalamus}.log</code> — per-service tail logs, one file per region per service.</li>
+  </ul>
+
+  <h2 id="represents">What it represents</h2>
+  <p>The output is an honest record of the system running for ~52 seconds of in-cluster orchestrator time (after a ~3-minute warm-up of cluster + chains + contracts), exercising:</p>
+  <ul>
+    <li>3 chain stacks (medulla-pow, hippocampus-dag, cortex-evm) replicated across 3 regions.</li>
+    <li>7 contracts deployed once into the compute region's cortex-evm and shared across regions.</li>
+    <li>2 services per region (siyana-api + thalamus-router), each writing to its own per-region NATS JetStream consumer.</li>
+    <li><strong>152 perceptions, 49 stores, 33 routes, 24 syncs, and 33 cross-region needlecasts</strong> in the verified Run B (Run A was 152 / 43 / 31 / — / 31 — see <a href="#real-runs">Real test runs</a>).</li>
+    <li>A continuous fairness audit on the TripartiteGame allocation contract — 50 audit calls, 50 fair, 0 unfair.</li>
+  </ul>
+
+  <h2 id="means">What the result means</h2>
+  <table>
+    <thead><tr><th>Verdict</th><th>What it means</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:#00ff88">FAIR</strong></td>
+        <td>Every epoch's per-region allocation respected its budget. The protocol's accounting matches reality.</td>
+        <td>Ship it.</td>
+      </tr>
+      <tr>
+        <td><strong style="color:#ff0055">UNFAIR</strong></td>
+        <td>One or more epochs over-spent. Either an agent leaked tokens, a contract under-counted, or a service double-billed.</td>
+        <td>The report's "unfair epochs" list pin-points the failures. Read the per-region service logs in <code>results/</code>.</td>
+      </tr>
+      <tr>
+        <td>0 needlecasts</td>
+        <td>The scripted scenario events failed to fire (likely the orchestrator never connected to siyana-api).</td>
+        <td>Check that all <code>siyana-api</code> pods are <code>Ready</code> in <code>kubectl get pods -A</code>.</td>
+      </tr>
+      <tr>
+        <td>Crashed pods</td>
+        <td>If <code>thalamus-router</code> or <code>siyana-api</code> are in <code>CrashLoopBackOff</code>, the run will time out instead of producing UNFAIR.</td>
+        <td>Check Prisma binary mismatches (Alpine openssl version) and per-region NATS consumer naming.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>The verdict only tests one property.</strong> "All epochs verified fair" means the allocation accounting holds — it does <em>not</em> prove that latency was actually applied, that all 6 agents stayed alive, or that the chain produced blocks. Read the timeline chart, the agent sparklines, and the needlecast log to verify the run actually exercised the system.
+  </div>
+
+  <h2 id="vary">How conditions vary</h2>
+  <p>The structural shape of the test (6 agents, 3 regions, 50 epochs, fixed scenario events) is deterministic. What varies between runs:</p>
+  <ul>
+    <li><strong>Per-epoch random activity.</strong> Each agent's perceive/store/route decisions are sampled against a probability per epoch. Two runs will produce different per-epoch counts but should converge to the same totals (±10%).</li>
+    <li><strong>Latency profile.</strong> Override with <code>terraform apply -var latency_storage_compute_ms=80</code> to simulate transcontinental routing. Higher latency shifts the timing of needlecasts but should not change the verdict.</li>
+    <li><strong>Epoch count.</strong> <code>--epochs 200</code> stresses the long-run fairness; the per-epoch test should be insensitive to count.</li>
+    <li><strong>Agent budgets.</strong> Edit <code>orchestrator.js</code> to make a region's compute budget unrealistically low and the verdict should flip to UNFAIR — this is a useful sanity check that the audit isn't always returning <code>true</code>.</li>
+    <li><strong>Hardware.</strong> Apple Silicon, x86 Linux, and GitHub's <code>ubuntu-latest</code> runners all execute the same code. The Alpine k3s image is the same; the Prisma engine binaries are different (musl/arm64 vs musl/x64) and both are baked into the <code>ecca-ts-builder</code> image.</li>
+  </ul>
+
+  <h2 id="real-runs">Real test runs (verified)</h2>
+  <p>Both runs below were executed locally on a MacBook Pro (Apple Silicon, Docker Desktop 4.x, k3d v5.8.3, Terraform 1.5.7, Node 20.x) against commit <code>618eac8</code>. The complete artifacts are linked from each card. Both runs verified <strong style="color:#00ff88">FAIR on all 50 epochs</strong> with zero unfair epochs.</p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0;">
+    <div class="callout" style="border-left-color:#00ff88; background:rgba(0,255,136,0.04); border-color:rgba(0,255,136,0.25);">
+      <div style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.15em; color:#00ff88;">RUN A · FROM-SCRATCH</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#888; margin:0.3rem 0 0.6rem;">2026-05-09 · 13:36:25 → 13:37:17 UTC · orchestrator 56 s · apply ≈ 8 min</div>
+      <table style="margin:0;font-size:0.78rem;">
+        <tr><td>Epochs</td><td><strong>50 / 50 fair</strong></td></tr>
+        <tr><td>Perceptions</td><td>152</td></tr>
+        <tr><td>Stores</td><td>43</td></tr>
+        <tr><td>Routes</td><td>31</td></tr>
+        <tr><td>Migrations</td><td>31</td></tr>
+        <tr><td>Residues</td><td>1 (resolved)</td></tr>
+        <tr><td>Scenarios</td><td>9 / 9 fired</td></tr>
+        <tr><td>Verdict</td><td><strong style="color:#00ff88">FAIR</strong></td></tr>
+      </table>
+      <div style="margin-top:0.6rem;font-size:0.78rem;">First end-to-end run after <code>terraform apply -auto-approve -var skip_images=true</code> against a freshly created <code>k3d</code> cluster (1 server + 3 agents).</div>
+    </div>
+    <div class="callout" style="border-left-color:#00f0ff; background:rgba(0,240,255,0.04); border-color:rgba(0,240,255,0.25);">
+      <div style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:0.15em; color:#00f0ff;">RUN B · REPRODUCED</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#888; margin:0.3rem 0 0.6rem;">2026-05-09 · 13:47:13 → 13:48:05 UTC · orchestrator 51.7 s</div>
+      <table style="margin:0;font-size:0.78rem;">
+        <tr><td>Epochs</td><td><strong>50 / 50 fair</strong></td></tr>
+        <tr><td>Perceptions</td><td>152</td></tr>
+        <tr><td>Stores</td><td>49</td></tr>
+        <tr><td>Routes</td><td>33</td></tr>
+        <tr><td>Syncs</td><td>24</td></tr>
+        <tr><td>Migrations</td><td>33</td></tr>
+        <tr><td>Residues</td><td>1 (resolved)</td></tr>
+        <tr><td>Verdict</td><td><strong style="color:#00f0ff">FAIR</strong></td></tr>
+      </table>
+      <div style="margin-top:0.6rem;font-size:0.78rem;">Re-run with rebuilt <code>ecca-playfair-orchestrator:local</code> to validate the new <code>env</code> metadata block. Same cluster, fresh orchestrator job. <a href="playfair-report.html">→ View Run B report</a></div>
+    </div>
+  </div>
+
+  <h3>Per-agent activity (Run B)</h3>
+  <p>Six agents, two per region, each with a sleeve kind that interacts differently with its region's cost profile. Token columns are cumulative burn over 50 epochs:</p>
+  <table>
+    <thead><tr><th>Agent</th><th>Home region</th><th>Sleeve</th><th>Perceive</th><th>Store</th><th>Route</th><th>Sync</th><th>Compute&nbsp;tok</th><th>Storage&nbsp;tok</th><th>Bandwidth&nbsp;tok</th><th>Final&nbsp;drift</th></tr></thead>
+    <tbody>
+      <tr><td>Archivist-Alpha</td><td><span class="pill storage">storage</span></td><td>memory</td><td>13</td><td>12</td><td>3</td><td>1</td><td>52</td><td>36</td><td>15.7</td><td>8.0</td></tr>
+      <tr><td>Archivist-Beta</td><td><span class="pill storage">storage</span></td><td>human</td><td>36</td><td>20</td><td>1</td><td>7</td><td>75</td><td>60</td><td>5.2</td><td>10.0</td></tr>
+      <tr><td>Inference-Prime</td><td><span class="pill compute">compute</span></td><td>ai</td><td>41</td><td>6</td><td>2</td><td>8</td><td><strong>328</strong></td><td>18</td><td>12.2</td><td>6.0</td></tr>
+      <tr><td>Inference-Echo</td><td><span class="pill compute">compute</span></td><td>ai</td><td>36</td><td>4</td><td>5</td><td>6</td><td><strong>288</strong></td><td>12</td><td>26.7</td><td>6.0</td></tr>
+      <tr><td>Router-Nexus</td><td><span class="pill bandwidth">bandwidth</span></td><td>mining</td><td>13</td><td>3</td><td>12</td><td>1</td><td>52</td><td>9</td><td><strong>61.2</strong></td><td>8.0</td></tr>
+      <tr><td>Router-Sentinel</td><td><span class="pill bandwidth">bandwidth</span></td><td>memory</td><td>13</td><td>4</td><td>10</td><td>1</td><td>52</td><td>12</td><td><strong>51.0</strong></td><td>8.0</td></tr>
+    </tbody>
+  </table>
+  <p><strong>What this means:</strong> the bold cells show each region's "expected" specialty: AI sleeves in <code>compute</code> burn the most compute tokens; mining/memory sleeves in <code>bandwidth</code> burn the most bandwidth tokens. The Archivists in <code>storage</code> show balanced storage burn (36 + 60 = 96 storage tokens against the region budget of 1000). No agent exceeded its per-region budget on any epoch — that's what the FAIR verdict tracks.</p>
+
+  <h3>Scenario events (deterministic, fired at fixed epochs)</h3>
+  <p>Nine scripted events drive cross-region migrations and residue handling so the test exercises the migration paths even on a quiet random seed:</p>
+  <table>
+    <thead><tr><th>Epoch</th><th>Type</th><th>Agent</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr><td>5</td><td>spot-preemption</td><td>Inference-Prime</td><td>Spot instance pulled from <code>compute</code>; agent must needlecast to <code>storage</code>.</td></tr>
+      <tr><td>8</td><td>respawn</td><td>Inference-Prime</td><td>Re-sleeves in <code>storage</code> region (expensive compute, cheap storage).</td></tr>
+      <tr><td>15</td><td>needlecast</td><td>Inference-Prime</td><td>Spot instance back; needlecasts <code>storage → compute</code> at cost 7.1 RoutingToken.</td></tr>
+      <tr><td>20</td><td>drift-spike</td><td>Archivist-Beta</td><td>Human agent goes idle 5 epochs; drift accumulates to 16.</td></tr>
+      <tr><td>25</td><td>sync-recovery</td><td>Archivist-Beta</td><td>Returns and burns 4.5 SyncToken to reset drift.</td></tr>
+      <tr><td>30</td><td>residue-inject</td><td>(bandwidth)</td><td>Simulated <code>shard-loss</code>; first responder earns the bounty.</td></tr>
+      <tr><td>30</td><td>residue-resolved</td><td>Router-Sentinel</td><td>Detected and resolved within 1.14 s; payout = 15 ResidueToken.</td></tr>
+      <tr><td>35</td><td>needlecast</td><td>Inference-Echo</td><td>Migrates <code>compute → bandwidth</code> for cheaper routing during high-needlecast phase.</td></tr>
+      <tr><td>40</td><td>epoch-surge</td><td>(all)</td><td>All agents perceive at max rate for 5 epochs — stress test.</td></tr>
+      <tr><td>45</td><td>needlecast</td><td>Inference-Echo</td><td>Returns to <code>compute</code> as surge subsides.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cross-region migrations (33 in Run B)</h3>
+  <p>Each row is a needlecast: an agent's identity + sleeve state migrates from one region's stack to another, paying RoutingToken proportional to shard count and inter-region latency. The first 8 of 33 are shown — see the full <a href="playfair-report.html#needlecasts">Needlecast log in the report</a>.</p>
+  <pre><code>epoch  agent                from        to          shards  cost
+─────  ───────────────────  ──────────  ──────────  ──────  ─────
+   11  Router-Nexus         bandwidth   storage          1   5.1
+   11  Router-Sentinel      bandwidth   storage          1   5.1
+   12  Router-Sentinel      storage     compute          1   5.1
+   13  Router-Nexus         storage     bandwidth        1   5.1
+   14  Inference-Prime      storage     bandwidth        1   5.1
+   15  Inference-Prime      bandwidth   compute          1   7.1   ← scenario-driven (epoch-15)
+   16  Router-Nexus         bandwidth   storage          1   5.1
+   18  Router-Nexus         storage     compute          1   5.1
+   …    (25 more)</code></pre>
+  <p><strong>Why the cost varies:</strong> the storage↔bandwidth path has the highest injected latency (75 ± 12 ms one-way), so its cost coefficient is higher (7.1 vs 5.1 for the cheaper paths). The cost is verified on-chain by the <code>NeedlecastRouter</code> contract and burned from the agent's BandwidthToken balance.</p>
+
+  <h3>Allocation audit (every epoch)</h3>
+  <p>After every epoch tick the orchestrator calls the TripartiteGame contract's <code>auditEpoch(epochNumber)</code> view function, which returns whether per-region token sums for the closing epoch respected the per-region budgets. A single failure flips the run verdict to UNFAIR.</p>
+  <pre><code>{ "epoch":  1, "fair": true, "ts": "2026-05-09T13:47:15.546Z" }
+{ "epoch":  2, "fair": true, "ts": "2026-05-09T13:47:16.543Z" }
+{ "epoch":  3, "fair": true, "ts": "2026-05-09T13:47:17.514Z" }
+…
+{ "epoch": 48, "fair": true, "ts": "2026-05-09T13:48:02.573Z" }
+{ "epoch": 49, "fair": true, "ts": "2026-05-09T13:48:03.565Z" }
+{ "epoch": 50, "fair": true, "ts": "2026-05-09T13:48:04.709Z" }
+
+summary.allEpochsFair = true
+summary.unfairEpochs  = []</code></pre>
+
+  <h3>Residue handling</h3>
+  <p>At epoch 30 the scenario script injects a <code>shard-loss</code> residue in the <code>bandwidth</code> region. The residue carries a <code>bountyEstimate</code>; the first sleeve to detect-and-resolve it claims the payout.</p>
+  <pre><code>{
+  "epoch":          30,
+  "kind":           "shard-loss",
+  "region":         "bandwidth",
+  "ts":             "2026-05-09T13:47:44.445Z",
+  "resolved":       true,
+  "bountyEstimate": 15,
+  "resolvedAt":     "2026-05-09T13:47:45.587Z",
+  "resolver":       "Router-Sentinel",
+  "payout":         15
+}</code></pre>
+  <p><strong>What this proves:</strong> the residue economy works end-to-end — injection on a real chain, detection by a sleeve in the affected region, on-chain proof submission, ResidueToken minted to the resolver. Latency from injection to resolution: <strong>1.14 s</strong>, well within the 4-second epoch tick.</p>
+
+  <h2 id="anatomy">Anatomy of a report</h2>
+  <p>Open <a href="playfair-report.html">/playfair-report.html</a> in another tab and follow along. Each section answers a different operational question:</p>
+
+  <table>
+    <thead><tr><th>Section</th><th>What you see</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Header verdict banner</strong></td><td>Big FAIR/UNFAIR pill, agent count, region count, epoch count.</td><td>The headline result. If UNFAIR, stop here and read the unfair-epochs list.</td></tr>
+      <tr><td><strong>Runtime configuration panel</strong></td><td>Cluster name, latency profile, commit hash, runner (local / github-actions), branch.</td><td>Lets a future reader (or CI viewer) tell exactly <em>which version of the code</em> produced this report and under what conditions. Without this panel a report is unfalsifiable.</td></tr>
+      <tr><td><strong>Stat strip</strong></td><td>5 large stats: epochs, perceptions, stores, routes, residues.</td><td>One-glance throughput. Compare across runs to detect throughput regressions.</td></tr>
+      <tr><td><strong>Activity timeline</strong></td><td>Stacked-area SVG chart: perceives / stores / routes / syncs over 50 epochs. Red dots mark unfair epochs.</td><td>Shape diagnostics. Flat curves = the test never warmed up. Cliff drops = a service crashed mid-run. Red dots = audit violations.</td></tr>
+      <tr><td><strong>Region cards</strong></td><td>Three side-by-side cards: cheap/expensive specialty, per-region budgets (C/S/B), agent count.</td><td>Confirms the test's adversarial setup matches the spec.</td></tr>
+      <tr><td><strong>Per-agent sparklines</strong></td><td>4 cumulative lines per agent: perceive (cyan), store (magenta), route (purple), sync (green).</td><td>Per-agent behaviour. An agent whose lines are flat after epoch <em>N</em> is silently dead even if no pod restarted.</td></tr>
+      <tr><td><strong>Region token-usage bars</strong></td><td>Three horizontal bars per region: compute / storage / bandwidth burn vs budget.</td><td>Visual sanity check on the FAIR verdict. Bars longer than the budget line would mean an over-spend the audit somehow missed.</td></tr>
+      <tr><td><strong>Scenario timeline</strong></td><td>Vertical list of 9 scripted events with epoch + description.</td><td>Confirms the scripted storyline actually fired. Missing events = orchestrator crashed before reaching that epoch.</td></tr>
+      <tr><td><strong>Needlecast log</strong></td><td>Table of every cross-region migration with cost.</td><td>The cross-chain workload. Should be ≥ 9 in any run that completed (the scripted minimum); typically 30+.</td></tr>
+      <tr><td><strong>Residue table</strong></td><td>Every detected residue, who resolved it, payout, latency.</td><td>Proves the residue market clears. Detection-to-resolution latency &gt; 1 epoch suggests a stuck worker.</td></tr>
+      <tr><td><strong>Footer verdict</strong></td><td>Repeated FAIR/UNFAIR + summary sentence + how-to-read explainer.</td><td>For readers who scrolled to the bottom first.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Reading order tip.</strong> If the verdict is FAIR, skim: header → runtime config → activity timeline → region bars → done. If the verdict is UNFAIR, read: header → unfair-epoch list in the verdict pill → activity timeline (find the red dot) → region bars (which region is over budget) → per-agent sparklines (which agent caused it). The orchestrator log in <code>tests/playfair/results/orchestrator.log</code> contains a per-epoch print line you can grep with the offending epoch number.
+  </div>
+
+  <h2 id="run-local">Run it locally</h2>
+  <p>Prerequisites: Docker Desktop, <code>brew install k3d terraform kubectl jq</code>, Node 20, pnpm 9.</p>
+  <pre><code>git clone https://github.com/quellcrist-falconer/ECCA.git
+cd ECCA
+pnpm install --no-frozen-lockfile
+bash tests/playfair/run.sh                        # full from-scratch run
+bash tests/playfair/run.sh --skip-images          # reuse cached images
+bash tests/playfair/run.sh --epochs 200           # longer game
+bash tests/playfair/run.sh --skip-latency         # disable tc netem
+bash tests/playfair/run.sh --destroy              # tear down cluster
+open tests/playfair/playfair-report.html          # view the report</code></pre>
+  <p>Under the hood <code>run.sh</code> is a thin wrapper around <code>tests/playfair/terraform/</code>. Every state transition is declared in Terraform — image builds, image imports, latency injection, manifest applies, and the orchestrator job. Idempotent re-runs only re-execute the resources whose source hashes changed.</p>
+
+  <h2 id="run-ci">Run it in CI</h2>
+  <p>The <a href="https://github.com/quellcrist-falconer/ECCA/blob/main/.github/workflows/playfair.yml"><code>.github/workflows/playfair.yml</code></a> workflow:</p>
+  <ol>
+    <li>Installs <code>k3d</code>, <code>terraform</code>, and <code>kubectl</code> on the runner.</li>
+    <li>Builds all images via <code>docker build</code> (no registry — k3d imports them straight from the runner's docker daemon).</li>
+    <li>Runs <code>terraform apply -auto-approve</code> against the local k3d cluster.</li>
+    <li>Uploads <code>playfair-report.html</code> + <code>playfair-results.json</code> + per-region logs as a build artifact.</li>
+    <li>On <code>main</code>, commits the rendered HTML to <code>docs/playfair-report.html</code> with <code>[skip ci]</code> so the Pages workflow picks it up on the next run.</li>
+  </ol>
+  <p>Manual triggers via <em>workflow_dispatch</em> accept overrides:</p>
+  <pre><code>gh workflow run playfair.yml \
+   -f epochs=100 \
+   -f latency_storage_compute_ms=80 \
+   -f skip_latency=false</code></pre>
+
+  <h2 id="tuning">Tuning &amp; debugging</h2>
+  <h3>Watch the run progress</h3>
+  <pre><code>kubectl get pods -A -w
+kubectl -n ecca-shared logs -f job/playfair-orchestrator
+kubectl -n region-storage logs -f deploy/siyana-api</code></pre>
+
+  <h3>Iterate on a single service</h3>
+  <p>Edit <code>services/siyana-api/src/server.ts</code>, then:</p>
+  <pre><code>terraform apply -auto-approve \
+  -var skip_latency=true \
+  -var force_image_rebuild=$(date +%s)</code></pre>
+  <p>Source-tree hashing means only the <code>siyana-api</code> image is rebuilt and re-imported; chains and infra stay up.</p>
+
+  <h3>Common failures</h3>
+  <table>
+    <thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>ErrImageNeverPull: ecca-ts-builder:local</code></td><td>Image not imported into k3d</td><td>It's listed in <code>main.tf</code>'s <code>all_image_refs</code>; if missing, add it and re-apply.</td></tr>
+      <tr><td><code>PrismaClientInitializationError: ... openssl-1.1.x</code></td><td>Alpine openssl version detection fails</td><td><code>PRISMA_QUERY_ENGINE_LIBRARY</code> is hard-pinned in <code>03-services.yaml</code> to the musl/arm64 3.0.x engine.</td></tr>
+      <tr><td><code>Error: duplicate subscription</code> in thalamus-router</td><td>Multiple regions sharing one NATS consumer name</td><td>Consumer names are region-scoped (<code>thalamus-mem-${region}</code>) — verify <code>ECCA_REGION</code> env is set per pod.</td></tr>
+      <tr><td><code>k3d image import</code> hangs</td><td>Concurrent imports deadlock the k3d tools node</td><td>Imports are serialised in a single <code>null_resource.k3d_image_import</code> shell loop.</td></tr>
+      <tr><td>Empty <code>playfair-results.json</code></td><td>Orchestrator pod completed before <code>kubectl cp</code> ran</td><td>Fallback in <code>run-orchestrator.sh</code> extracts JSON from the log marker <code>═══ RESULTS JSON ═══</code>.</td></tr>
+    </tbody>
+  </table>
+
+</div>
+</div>
+
+</body>
+</html>

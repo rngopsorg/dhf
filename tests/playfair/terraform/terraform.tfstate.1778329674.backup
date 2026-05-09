@@ -1,0 +1,490 @@
+{
+  "version": 4,
+  "terraform_version": "1.5.7",
+  "serial": 47,
+  "lineage": "d98c6686-cd2c-c343-32d9-182b5dea036b",
+  "outputs": {
+    "cluster_name": {
+      "value": "playfair",
+      "type": "string"
+    },
+    "endpoints": {
+      "value": {
+        "bandwidth": "http://localhost:27072",
+        "compute": "http://localhost:27071",
+        "storage": "http://localhost:27070"
+      },
+      "type": [
+        "object",
+        {
+          "bandwidth": "string",
+          "compute": "string",
+          "storage": "string"
+        }
+      ]
+    },
+    "kubeconfig_hint": {
+      "value": "kubectl config use-context k3d-playfair",
+      "type": "string"
+    },
+    "latency_profile": {
+      "value": "storage↔compute 33±5ms, compute↔bandwidth 42±8ms, storage↔bandwidth 75±12ms",
+      "type": "string"
+    },
+    "regions": {
+      "value": [
+        "region-storage",
+        "region-compute",
+        "region-bandwidth"
+      ],
+      "type": [
+        "list",
+        "string"
+      ]
+    },
+    "report_path": {
+      "value": "/Users/a/projects/arg/tests/playfair/playfair-report.html",
+      "type": "string"
+    },
+    "results_dir": {
+      "value": "/Users/a/projects/arg/tests/playfair/terraform/../results",
+      "type": "string"
+    },
+    "teardown": {
+      "value": "terraform destroy -auto-approve  # tears down cluster + state",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "external",
+      "name": "src_hashes",
+      "provider": "provider[\"registry.terraform.io/hashicorp/external\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "-",
+            "program": [
+              "bash",
+              "./scripts/src-hashes.sh"
+            ],
+            "query": {
+              "repo_root": "/Users/a/projects/arg"
+            },
+            "result": {
+              "chain_cortex_evm": "e8cadb8d44d29dd3bf9db3bef0df5b5ade81603d2e45ef559c3e90487478183c",
+              "chain_hippocampus_dag": "297b15bb8018376adba44fa8ae7a2d282575578f68ecf8d1429e3c963ab8c8cd",
+              "chain_medulla_pow": "01cb47049144317b4763c84e2136cf1bb8992027b705efba57a3d89adb59156a",
+              "orchestrator": "6759a326dd91beebaa817eefe446152182fa0fcee4327c821fd006bcad5417e1",
+              "ts_builder": "068655848007a8cae3b01d92ea00b90f213e86c42f24d1f79eeed40871cd58fb"
+            },
+            "working_dir": null
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "contracts_deployer",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "image_chain",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": "cortex-evm",
+          "schema_version": 0,
+          "attributes": {
+            "id": "2192760125538961718",
+            "triggers": {
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true",
+              "src_hash": "e8cadb8d44d29dd3bf9db3bef0df5b5ade81603d2e45ef559c3e90487478183c"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes"
+          ]
+        },
+        {
+          "index_key": "hippocampus-dag",
+          "schema_version": 0,
+          "attributes": {
+            "id": "132485201322608783",
+            "triggers": {
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true",
+              "src_hash": "297b15bb8018376adba44fa8ae7a2d282575578f68ecf8d1429e3c963ab8c8cd"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes"
+          ]
+        },
+        {
+          "index_key": "medulla-pow",
+          "schema_version": 0,
+          "attributes": {
+            "id": "2942253183523992702",
+            "triggers": {
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true",
+              "src_hash": "01cb47049144317b4763c84e2136cf1bb8992027b705efba57a3d89adb59156a"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "image_orchestrator",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "1057955658761186323",
+            "triggers": {
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true",
+              "src_hash": "6759a326dd91beebaa817eefe446152182fa0fcee4327c821fd006bcad5417e1"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "image_service",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": "bandwidth-faucet",
+          "schema_version": 0,
+          "attributes": {
+            "id": "8494918438685848136",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "dhf-compositor",
+          "schema_version": 0,
+          "attributes": {
+            "id": "8458974033965772136",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "needlecast-router-svc",
+          "schema_version": 0,
+          "attributes": {
+            "id": "3638664023162068559",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "quellist-treasury-svc",
+          "schema_version": 0,
+          "attributes": {
+            "id": "2921415121182603725",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "siyana-api",
+          "schema_version": 0,
+          "attributes": {
+            "id": "2819140971576299388",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "sleeve-runtime",
+          "schema_version": 0,
+          "attributes": {
+            "id": "47220192903775407",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "thalamus-router",
+          "schema_version": 0,
+          "attributes": {
+            "id": "3494422000998352923",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        },
+        {
+          "index_key": "worker",
+          "schema_version": 0,
+          "attributes": {
+            "id": "8178843679951518455",
+            "triggers": {
+              "builder_id": "650278554367743811",
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes",
+            "null_resource.image_ts_builder"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "image_ts_builder",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "650278554367743811",
+            "triggers": {
+              "force_rebuild": "",
+              "image_tag": "local",
+              "skip": "true",
+              "src_hash": "068655848007a8cae3b01d92ea00b90f213e86c42f24d1f79eeed40871cd58fb"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "data.external.src_hashes"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "k3d_cluster",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "1722610674809769040",
+            "triggers": {
+              "agents": "3",
+              "cluster_name": "playfair",
+              "ports": "27070-27072:30070-30072,28332-28334:30332-30334,25001-25003:30501-30503,28545-28547:30545-30547",
+              "script_hash": "15c32ed4317b45b0a88f84e33a04047b0a39f484ff46b7d3598df621f18d1991"
+            }
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "k3d_image_import",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": "ecca-worker:local",
+          "status": "tainted",
+          "schema_version": 0,
+          "attributes": {
+            "id": "1201413608021070975",
+            "triggers": {
+              "build_id": "8178843679951518455",
+              "cluster_id": "1722610674809769040",
+              "image_ref": "ecca-worker:local"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "null_resource.image_chain",
+            "null_resource.image_orchestrator",
+            "null_resource.image_service",
+            "null_resource.k3d_cluster"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "latency",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "9053172399012666915",
+            "triggers": {
+              "cluster_id": "1722610674809769040",
+              "compute_bandwidth": "42±8",
+              "configure_script_hash": "15f2de31578092f1f76f872b608ff92b06987753815a81afde37d99c065d77f9",
+              "inject_script_hash": "f59a24706535893e5a248f41e5a7728c37e7b328fab625512d3eb05dca5ef920",
+              "storage_bandwidth": "75±12",
+              "storage_compute": "33±5"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "null_resource.k3d_cluster"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "namespaces",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "node_labels",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "1787491461896913148",
+            "triggers": {
+              "cluster_id": "1722610674809769040",
+              "regions": "region-storage,region-compute,region-bandwidth"
+            }
+          },
+          "sensitive_attributes": [],
+          "dependencies": [
+            "null_resource.k3d_cluster"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "orchestrator",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "region_chains",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "services",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "shared_infra",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    }
+  ],
+  "check_results": null
+}

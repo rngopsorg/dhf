@@ -17,6 +17,7 @@ const EPOCH_ANCHOR_ADDR = process.env.EPOCH_ANCHOR_ADDRESS as Hex | undefined;
 async function main() {
   const app = await createService({ name: 'thalamus-router' });
   const log = app.log;
+  const region = (process.env.ECCA_REGION ?? 'default').replace(/[^a-z0-9]/g, '-');
   const bus = await getBus();
   const db = getDb();
   const medulla = new MedullaClient();
@@ -32,13 +33,13 @@ async function main() {
   const sleeveHashes: string[] = [];
 
   // Aggregate hippocampus + EVM + sleeve events.
-  await bus.subscribe('ecca.memory.>', 'thalamus-mem', async (ev: any) => {
+  await bus.subscribe('ecca.memory.>', `thalamus-mem-${region}`, async (ev: any) => {
     if (ev?.cid) ipfsHashes.push(sha256hex(ev.cid));
   });
-  await bus.subscribe('ecca.sleeve.>', 'thalamus-sleeve', async (ev: any) => {
+  await bus.subscribe('ecca.sleeve.>', `thalamus-sleeve-${region}`, async (ev: any) => {
     sleeveHashes.push(sha256hex(JSON.stringify({ t: ev.type, id: ev.sleeveId ?? ev.stackId })));
   });
-  await bus.subscribe('ecca.chain.evm.>', 'thalamus-evm', async (ev: any) => {
+  await bus.subscribe('ecca.chain.evm.>', `thalamus-evm-${region}`, async (ev: any) => {
     if (ev?.txHash) evmHashes.push(ev.txHash);
   });
 

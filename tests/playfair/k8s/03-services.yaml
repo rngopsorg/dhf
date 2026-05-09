@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 7070
-          env: &ts-env-storage
+          env:
             - name: DATABASE_URL
               value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
             - name: REDIS_URL
@@ -54,6 +54,8 @@ spec:
               value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
             - name: ECCA_REGION
               value: "region-storage"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 200m, memory: 256Mi }
             limits:   { cpu: 500m, memory: 512Mi }
@@ -95,7 +97,31 @@ spec:
         - name: thalamus
           image: ecca-thalamus-router:local
           imagePullPolicy: Never
-          env: *ts-env-storage
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
+            - name: REDIS_URL
+              value: "redis://redis.ecca-shared:6379"
+            - name: NATS_URL
+              value: "nats://nats.ecca-shared:4222"
+            - name: CORTEX_RPC
+              value: "http://cortex-evm.region-storage:8545"
+            - name: CORTEX_WS
+              value: "ws://cortex-evm.region-storage:8546"
+            - name: CORTEX_CHAIN_ID
+              value: "131072"
+            - name: MEDULLA_RPC
+              value: "http://medulla-pow.region-storage:8332"
+            - name: HIPPOCAMPUS_API
+              value: "http://hippocampus-dag.region-storage:5001"
+            - name: ECCA_EPOCH_INTERVAL_MS
+              value: "4000"
+            - name: OPERATOR_PRIVATE_KEY
+              value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            - name: ECCA_REGION
+              value: "region-storage"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 200m, memory: 256Mi }
             limits:   { cpu: 500m, memory: 512Mi }
@@ -127,7 +153,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 7070
-          env: &ts-env-compute
+          env:
             - name: DATABASE_URL
               value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
             - name: REDIS_URL
@@ -150,6 +176,8 @@ spec:
               value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
             - name: ECCA_REGION
               value: "region-compute"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 500m, memory: 512Mi }
             limits:   { cpu: 1000m, memory: 1Gi }
@@ -191,7 +219,31 @@ spec:
         - name: thalamus
           image: ecca-thalamus-router:local
           imagePullPolicy: Never
-          env: *ts-env-compute
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
+            - name: REDIS_URL
+              value: "redis://redis.ecca-shared:6379"
+            - name: NATS_URL
+              value: "nats://nats.ecca-shared:4222"
+            - name: CORTEX_RPC
+              value: "http://cortex-evm.region-compute:8545"
+            - name: CORTEX_WS
+              value: "ws://cortex-evm.region-compute:8546"
+            - name: CORTEX_CHAIN_ID
+              value: "131072"
+            - name: MEDULLA_RPC
+              value: "http://medulla-pow.region-compute:8332"
+            - name: HIPPOCAMPUS_API
+              value: "http://hippocampus-dag.region-compute:5001"
+            - name: ECCA_EPOCH_INTERVAL_MS
+              value: "4000"
+            - name: OPERATOR_PRIVATE_KEY
+              value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            - name: ECCA_REGION
+              value: "region-compute"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 500m, memory: 512Mi }
             limits:   { cpu: 1000m, memory: 1Gi }
@@ -223,7 +275,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 7070
-          env: &ts-env-bandwidth
+          env:
             - name: DATABASE_URL
               value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
             - name: REDIS_URL
@@ -246,6 +298,8 @@ spec:
               value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
             - name: ECCA_REGION
               value: "region-bandwidth"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 200m, memory: 256Mi }
             limits:   { cpu: 500m, memory: 512Mi }
@@ -287,7 +341,31 @@ spec:
         - name: thalamus
           image: ecca-thalamus-router:local
           imagePullPolicy: Never
-          env: *ts-env-bandwidth
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://ecca:quellcrist@postgres.ecca-shared:5432/ecca_registry"
+            - name: REDIS_URL
+              value: "redis://redis.ecca-shared:6379"
+            - name: NATS_URL
+              value: "nats://nats.ecca-shared:4222"
+            - name: CORTEX_RPC
+              value: "http://cortex-evm.region-bandwidth:8545"
+            - name: CORTEX_WS
+              value: "ws://cortex-evm.region-bandwidth:8546"
+            - name: CORTEX_CHAIN_ID
+              value: "131072"
+            - name: MEDULLA_RPC
+              value: "http://medulla-pow.region-bandwidth:8332"
+            - name: HIPPOCAMPUS_API
+              value: "http://hippocampus-dag.region-bandwidth:5001"
+            - name: ECCA_EPOCH_INTERVAL_MS
+              value: "4000"
+            - name: OPERATOR_PRIVATE_KEY
+              value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            - name: ECCA_REGION
+              value: "region-bandwidth"
+            - name: PRISMA_QUERY_ENGINE_LIBRARY
+              value: "/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node"
           resources:
             requests: { cpu: 200m, memory: 256Mi }
             limits:   { cpu: 500m, memory: 512Mi }

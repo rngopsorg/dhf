@@ -1,21 +1,22 @@
 # Generic Dockerfile for ECCA TypeScript services
-# Build arg SERVICE selects which service to run
+# Uses the ts-builder stage from Dockerfile.builder for pre-built monorepo
 ARG SERVICE=siyana-api
+
+FROM ecca-ts-builder:local AS builder
 
 FROM node:20-alpine
 RUN apk add --no-cache tini
 WORKDIR /app
 
-# Copy built monorepo
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
-COPY packages/ packages/
-COPY services/ services/
-COPY workers/ workers/
-COPY node_modules/ node_modules/
+# Copy the entire built monorepo from the builder
+COPY --from=builder /app/package.json /app/pnpm-workspace.yaml /app/pnpm-lock.yaml /app/tsconfig.base.json ./
+COPY --from=builder /app/node_modules/ node_modules/
+COPY --from=builder /app/packages/ packages/
+COPY --from=builder /app/services/ services/
 
 ARG SERVICE
 ENV SERVICE_NAME=${SERVICE}
 
 # Determine the entry point based on service type
 ENTRYPOINT ["tini", "--"]
-CMD ["sh", "-c", "if [ -d /app/services/${SERVICE_NAME} ]; then cd /app/services/${SERVICE_NAME} && node dist/server.js; elif [ -d /app/workers/${SERVICE_NAME} ]; then cd /app/workers/${SERVICE_NAME} && node dist/server.js; else echo 'Service not found: ${SERVICE_NAME}' && exit 1; fi"]
+CMD ["sh", "-c", "cd /app/services/${SERVICE_NAME} && node dist/server.js"]

@@ -25,11 +25,21 @@ spec:
             - name: REGION_BANDWIDTH_API
               value: "http://siyana-api.region-bandwidth:7070"
             - name: EPOCHS
-              value: "50"
+              value: "EPOCHS_PLACEHOLDER"
             - name: ECCA_EPOCH_INTERVAL_MS
               value: "4000"
             - name: RESULTS_DIR
               value: "/results"
+            - name: PLAYFAIR_CLUSTER
+              value: "PLAYFAIR_CLUSTER_PLACEHOLDER"
+            - name: PLAYFAIR_LATENCY_PROFILE
+              value: "PLAYFAIR_LATENCY_PLACEHOLDER"
+            - name: GIT_COMMIT
+              value: "GIT_COMMIT_PLACEHOLDER"
+            - name: PLAYFAIR_RUNNER
+              value: "PLAYFAIR_RUNNER_PLACEHOLDER"
+            - name: GITHUB_REF_NAME
+              value: "GIT_BRANCH_PLACEHOLDER"
           volumeMounts:
             - name: results
               mountPath: /results
